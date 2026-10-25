@@ -6,217 +6,218 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0b1020">
 <title>40FPS | Kind of Loop</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-:root{
-  --bg:#0b1020;--panel:#151d32;--panel2:#1c2943;
-  --line:#2c3a59;--text:#f4f7ff;--muted:#aab7d0;
-  --purple:#8b7cff;--cyan:#58d9e8;--red:#ff8797;
+:root {
+  --bg:#0b1020;
+  --panel:#151d32;
+  --panel2:#1c2943;
+  --line:#2c3a59;
+  --text:#f4f7ff;
+  --muted:#aab7d0;
+  --purple:#8b7cff;
+  --cyan:#58d9e8;
 }
-*{box-sizing:border-box}
-body{
-  margin:0;background:radial-gradient(ellipse at top right,#292451 0,transparent 40%),var(--bg);
-  color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+* { box-sizing:border-box; }
+body {
+  margin:0;
+  background:radial-gradient(ellipse at top right,#292451 0,transparent 40%),var(--bg);
+  color:var(--text);
+  font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
 }
-button,input,textarea{font:inherit}
-button{cursor:pointer}
-.wrap{max-width:1100px;margin:auto;padding:24px 15px 50px}
-.hero,.panel{
-  border:1px solid var(--line);border-radius:20px;
-  background:var(--panel);padding:20px;margin-bottom:18px;
+button,input,textarea { font:inherit; }
+button { cursor:pointer; }
+.wrap { max-width:1100px; margin:auto; padding:22px 14px 45px; }
+.hero,.panel {
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:20px;
+  margin-bottom:16px;
 }
-.hero{background:linear-gradient(135deg,#24264a,#151d32 75%);padding:25px}
-.kicker{font-size:12px;font-weight:900;letter-spacing:2px;color:var(--cyan)}
-h1{font-size:clamp(26px,5vw,42px);margin:8px 0}
-h2{font-size:19px;margin:0 0 16px}
-.sub{color:var(--muted);line-height:1.65;margin:0}
-.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:20px}
-.stat{padding:15px;border:1px solid var(--line);border-radius:14px;background:#0d1427}
-.stat span{display:block;font-size:13px;color:var(--muted)}
-.stat strong{display:block;font-size:27px;margin-top:4px}
-.status{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);margin-top:15px}
-.dot{width:9px;height:9px;background:#f0bd63;border-radius:50%;flex-shrink:0}
-.dot.on{background:#69e0a7}.dot.off{background:var(--red)}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-.panel{min-width:0}
-.full{grid-column:1/-1}
-label.field{display:block;font-size:14px;margin:14px 0 7px}
-input[type=text],input[type=url],input[type=password],textarea{
-  display:block;width:100%;padding:12px 13px;color:var(--text);
-  background:#0c1427;border:1px solid #394968;border-radius:11px;outline:none;
+.hero { background:linear-gradient(135deg,#24264a,#151d32 75%); }
+.kicker { color:var(--cyan); font-size:12px; font-weight:900; letter-spacing:2px; }
+h1 { font-size:clamp(27px,5vw,42px); margin:8px 0; }
+h2 { font-size:19px; margin:0 0 15px; }
+.sub,.hint { color:var(--muted); line-height:1.7; }
+.sub { margin:0; }
+.hint { font-size:12px; }
+.grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.full { grid-column:1/-1; }
+.stats { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:18px; }
+.stat { background:#0d1427; border:1px solid var(--line); border-radius:12px; padding:13px; }
+.stat span { display:block; color:var(--muted); font-size:12px; }
+.stat strong { display:block; font-size:25px; margin-top:4px; }
+label.field { display:block; font-size:14px; margin:14px 0 7px; }
+input[type="url"],input[type="text"],textarea {
+  width:100%;
+  padding:12px;
+  color:var(--text);
+  background:#0c1427;
+  border:1px solid #394968;
+  border-radius:10px;
+  outline:none;
 }
-input:focus,textarea:focus{border-color:var(--purple)}
-textarea{resize:vertical}
-.hint{font-size:12px;color:var(--muted);line-height:1.65;margin-top:7px}
-.picker{
-  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;
-  padding:10px;background:#0c1427;border:1px solid #394968;border-radius:12px;
-  max-height:300px;overflow:auto;
+input:focus,textarea:focus { border-color:var(--purple); }
+.picker {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+  padding:10px;
+  background:#0c1427;
+  border:1px solid #394968;
+  border-radius:12px;
+  max-height:280px;
+  overflow:auto;
 }
-.member-choice{
-  display:flex;align-items:center;gap:8px;padding:10px;margin:0;
-  border:1px solid var(--line);border-radius:9px;background:#111a2e;
-  font-size:13px;overflow-wrap:anywhere;cursor:pointer;
+.member-choice {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:9px;
+  border:1px solid var(--line);
+  border-radius:9px;
+  background:#111a2e;
+  font-size:13px;
+  overflow-wrap:anywhere;
 }
-.member-choice input{accent-color:var(--purple);flex-shrink:0}
-.member-choice:has(input:checked){background:#292449;border-color:var(--purple)}
-button{
-  padding:11px 15px;border:0;border-radius:10px;
-  background:var(--purple);color:white;font-weight:800;
+.member-choice input { accent-color:var(--purple); }
+.member-choice:has(input:checked) {
+  background:#292449;
+  border-color:var(--purple);
 }
-button.secondary{background:var(--panel2);border:1px solid var(--line)}
-button:disabled{opacity:.6;cursor:wait}
-.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:15px}
-.notice{
-  padding:12px;border:1px solid var(--line);border-radius:11px;
-  background:#10182b;color:var(--muted);font-size:12px;line-height:1.7;margin-top:15px;
+button {
+  padding:11px 14px;
+  border:0;
+  border-radius:10px;
+  background:var(--purple);
+  color:white;
+  font-weight:800;
 }
-.toolbar{display:flex;gap:8px;margin-bottom:12px}
-.toolbar input{min-width:0;flex:1}
-.leaderboard,.history{display:flex;flex-direction:column;gap:9px}
-.rankrow{
-  display:grid;grid-template-columns:42px minmax(0,1fr) auto;gap:10px;
-  align-items:center;background:#10182b;border:1px solid var(--line);
-  padding:11px;border-radius:12px;
+button.secondary { background:var(--panel2); border:1px solid var(--line); }
+.actions { display:flex; flex-wrap:wrap; gap:9px; margin-top:12px; }
+.notice {
+  padding:12px;
+  margin-top:14px;
+  background:#10182b;
+  border:1px solid var(--line);
+  border-radius:10px;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.7;
 }
-.medal{width:36px;height:36px;display:grid;place-items:center;background:var(--panel2);border-radius:10px;font-weight:900}
-.member-name{font-weight:800;overflow-wrap:anywhere}
-.member-role{font-size:12px;color:var(--muted);margin-top:3px}
-.points{font-weight:900;color:var(--cyan);white-space:nowrap;text-align:right}
-.card{background:#10182b;border:1px solid var(--line);border-radius:13px;padding:14px;overflow-wrap:anywhere}
-.cardtop{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
-.card small{color:var(--muted)}
-.card p{line-height:1.65;margin:10px 0}
-.proof{
-  display:inline-block;margin-top:6px;padding:10px 12px;
-  border:1px solid #4b5d86;border-radius:9px;background:#202b47;
-  color:#d4d0ff;text-decoration:none;font-weight:800;overflow-wrap:anywhere;
+.leaderboard,.history { display:flex; flex-direction:column; gap:9px; }
+.rankrow {
+  display:grid;
+  grid-template-columns:40px minmax(0,1fr) auto;
+  align-items:center;
+  gap:10px;
+  padding:11px;
+  background:#10182b;
+  border:1px solid var(--line);
+  border-radius:12px;
 }
-.proof:hover{text-decoration:underline}
-.empty{padding:22px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:12px}
-.settings{display:none;margin-top:16px;padding:15px;border:1px solid var(--line);border-radius:13px;background:#0f172a}
-.settings.show{display:block}
-.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media(max-width:760px){
-  .grid{grid-template-columns:1fr}.full{grid-column:auto}
-  .wrap{padding:13px 10px 30px}.hero,.panel{padding:16px}
-  .settings-grid{grid-template-columns:1fr}
+.medal {
+  width:35px;height:35px;
+  display:grid;place-items:center;
+  background:var(--panel2);
+  border-radius:10px;
+  font-weight:900;
+}
+.member-name { font-weight:800; overflow-wrap:anywhere; }
+.member-role { color:var(--muted); font-size:12px; margin-top:3px; }
+.points { color:var(--cyan); font-weight:900; white-space:nowrap; }
+.card { padding:14px; background:#10182b; border:1px solid var(--line); border-radius:12px; overflow-wrap:anywhere; }
+.card p { line-height:1.6; }
+.proof {
+  display:inline-block;
+  margin-top:8px;
+  padding:10px 12px;
+  background:#202b47;
+  color:#d4d0ff;
+  border:1px solid #4b5d86;
+  border-radius:9px;
+  text-decoration:none;
+  overflow-wrap:anywhere;
+}
+.empty { padding:20px; text-align:center; color:var(--muted); border:1px dashed var(--line); border-radius:10px; }
+@media(max-width:760px) {
+  .grid { grid-template-columns:1fr; }
+  .full { grid-column:auto; }
+  .wrap { padding:12px 9px 30px; }
+  .hero,.panel { padding:15px; }
 }
 </style>
 </head>
-
 <body>
 <div class="wrap">
 
 <header class="hero">
-  <div class="kicker">40FPS GANG • ONLINE SCOREBOARD</div>
+  <div class="kicker">40FPS GANG • KIND OF LOOP</div>
   <h1>🏁 Kind of Loop</h1>
-  <p class="sub">ส่งหลักฐานด้วยลิงก์ เลือกสมาชิกที่ร่วมเล่น และรับคะแนนรายบุคคล</p>
-
+  <p class="sub">วางลิงก์หลักฐาน เลือกสมาชิก และดูอันดับคะแนนรายบุคคล</p>
   <div class="stats">
     <div class="stat">
-      <span>หลักฐานทั้งหมด</span>
+      <span>หลักฐานที่เพิ่มในหน้านี้</span>
       <strong id="totalEntries">0</strong>
     </div>
     <div class="stat">
-      <span>สมาชิกที่มีคะแนน</span>
+      <span>สมาชิกที่มีคะแนนในหน้านี้</span>
       <strong id="activeMembers">0</strong>
     </div>
   </div>
-
-  <div class="status">
-    <span class="dot" id="statusDot"></span>
-    <span id="statusText">ยังไม่ได้เชื่อมต่อฐานข้อมูล</span>
-  </div>
-
-  <div class="actions">
-    <button type="button" class="secondary" id="settingsToggle">⚙ ตั้งค่า Supabase</button>
-    <button type="button" class="secondary" id="refreshBtn">↻ โหลดข้อมูลใหม่</button>
-  </div>
-
-  <div class="settings" id="settingsBox">
-    <strong>เชื่อมต่อฐานข้อมูลออนไลน์</strong>
-    <p class="hint">กรอก Project URL และ Publishable key หรือ anon key จากหน้า Project Settings / API ของ Supabase</p>
-    <div class="settings-grid">
-      <div>
-        <label class="field" for="projectUrl">Project URL</label>
-        <input id="projectUrl" type="url" placeholder="https://xxxx.supabase.co" autocomplete="url">
-      </div>
-      <div>
-        <label class="field" for="publicKey">Publishable / anon key</label>
-        <input id="publicKey" type="password" placeholder="วาง public key ของโปรเจกต์" autocomplete="off">
-      </div>
-    </div>
-    <div class="actions">
-      <button id="connectBtn" type="button">เชื่อมต่อและบันทึก</button>
-      <button id="clearConfigBtn" class="secondary" type="button">ล้างการตั้งค่าในเครื่องนี้</button>
-    </div>
+  <div class="notice">
+    ℹ️ เวอร์ชันนี้ไม่บันทึกข้อมูลลงฐานข้อมูล คะแนนและประวัติอยู่ชั่วคราวในหน้าเว็บเท่านั้น
   </div>
 </header>
 
 <div class="grid">
+  <section class="panel">
+    <h2>🔗 วางลิงก์หลักฐาน</h2>
 
-<section class="panel">
-  <h2>📤 ส่งหลักฐาน</h2>
+    <label class="field" for="proofUrl">ลิงก์รูปหรือหลักฐาน</label>
+    <input id="proofUrl" type="url" placeholder="คัดลอกลิงก์แล้ววางที่นี่...">
 
-  <form id="entryForm">
-    <label class="field">เลือกชื่อสมาชิกที่ร่วมเล่น *</label>
+    <div class="actions">
+      <button type="button" id="openLinkBtn">↗ เปิดลิงก์</button>
+      <button type="button" class="secondary" id="clearLinkBtn">ล้างลิงก์</button>
+    </div>
+    <p class="hint">วางลิงก์จากเว็บไซต์ที่สามารถเปิดดูได้ เช่น ลิงก์รูปที่แชร์ไว้</p>
+
+    <h2 style="margin-top:24px">👥 เลือกสมาชิกที่ร่วมเล่น</h2>
     <div class="picker" id="memberPicker"></div>
     <p class="hint" id="selectedCount">เลือกแล้ว 0 คน • คนละ 1 คะแนน</p>
 
-    <label class="field" for="proofUrl">🔗 ลิงก์รูปหลักฐาน *</label>
-    <input id="proofUrl" type="url" placeholder="https:// วางลิงก์รูปตรงนี้" required>
-    <p class="hint">ใช้ลิงก์ HTTPS ที่เปิดดูได้สำหรับสมาชิกในเซิร์ฟเวอร์ เช่น ลิงก์รูปที่แชร์สาธารณะ</p>
-    <div class="actions">
-      <button id="testLinkBtn" class="secondary" type="button">↗ ทดสอบเปิดลิงก์</button>
-    </div>
-
-    <label class="field" for="note">หมายเหตุ (ถ้ามี)</label>
-    <textarea id="note" rows="3" placeholder="รายละเอียดรอบหรือหมายเหตุ"></textarea>
+    <label class="field" for="note">หมายเหตุ (ไม่บังคับ)</label>
+    <textarea id="note" rows="2" placeholder="รายละเอียดเพิ่มเติม"></textarea>
 
     <div class="actions">
-      <button id="submitBtn" type="submit">บันทึกหลักฐานและคะแนน</button>
-      <button type="reset" class="secondary">ล้างแบบฟอร์ม</button>
+      <button type="button" id="addEntryBtn">＋ เพิ่มในหน้านี้</button>
+      <button type="button" class="secondary" id="clearFormBtn">ล้างแบบฟอร์ม</button>
     </div>
-  </form>
+    <div class="notice">
+      การเพิ่มรายการนี้เป็นเพียงข้อมูลชั่วคราว ไม่ได้ส่งไปยังเซิร์ฟเวอร์ และจะหายเมื่อรีเฟรชหรือปิดหน้าเว็บ
+    </div>
+  </section>
 
-  <div class="notice">
-    กติกาคะแนน: สมาชิกทุกคนที่เลือกจะได้คนละ 1 คะแนนต่อหลักฐานหนึ่งรายการ
-    ไม่มีช่องกรอกคะแนนเอง และไม่มีคะแนนรวมทีม
-  </div>
-</section>
-
-<section class="panel">
-  <h2>🏆 อันดับรายบุคคล</h2>
-  <div class="toolbar">
+  <section class="panel">
+    <h2>🏆 อันดับรายบุคคล</h2>
     <input id="rankSearch" type="text" placeholder="ค้นหาชื่อสมาชิก...">
-    <button id="csvBtn" type="button" class="secondary">CSV</button>
-  </div>
-  <div class="leaderboard" id="leaderboard"></div>
-</section>
+    <div class="leaderboard" id="leaderboard" style="margin-top:12px"></div>
+  </section>
 
-<section class="panel full">
-  <h2>🧾 ประวัติหลักฐาน</h2>
-  <div class="toolbar">
+  <section class="panel full">
+    <h2>🧾 ประวัติหลักฐานในหน้านี้</h2>
     <input id="historySearch" type="text" placeholder="ค้นหาชื่อหรือหมายเหตุ...">
-  </div>
-  <div class="history" id="history"></div>
-</section>
-
+    <div class="history" id="history" style="margin-top:12px"></div>
+    <div class="actions">
+      <button type="button" class="secondary" id="clearHistoryBtn">ล้างประวัติชั่วคราว</button>
+    </div>
+  </section>
 </div>
 </div>
 
 <script>
 "use strict";
-
-/*
-  40FPS Kind of Loop
-  ใช้ตารางเดิม: kind_of_loop_entries
-  ใช้คอลัมน์เดิม: member, points, players, friends, note,
-                   image_url, created_at
-
-  แก้รายชื่อสมาชิกได้ใน MEMBERS ด้านล่าง
-*/
 
 const MEMBERS = [
   {name:"Skyler Florence",role:"หัวหน้า"},
@@ -238,455 +239,184 @@ const MEMBERS = [
   {name:"Pond Eiei",role:"สมาชิก"},
   {name:"Nox Fein",role:"สมาชิก"},
   {name:"Arm Nelly",role:"สมาชิก"},
-  {name:"Harper Steph",role:"สมาชิก"}
+  {name:"Harper Steph",role:"สมาชิก"},
+  {name:"Oreo Glenxlough",role:"สมาชิก"},
+  {name:"Smokey Fernandes",role:"สมาชิก"},
+  {name:"Taco Chatjennailenrao",role:"สมาชิก"},
+  {name:"Josave Overlove",role:"สมาชิก"},
+  {name:"Somchay Mirror",role:"สมาชิก"}
 ];
 
-const $ = id => document.getElementById(id);
-let supabaseClient = null;
 let entries = [];
+const $ = id => document.getElementById(id);
 
-function escapeHtml(value){
+function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, ch => ({
-    "&":"&amp;",
-    "<":"&lt;",
-    ">":"&gt;",
-    '"':"&quot;",
-    "'":"&#39;"
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
   })[ch]);
 }
 
-function setStatus(message, state){
-  $("statusText").textContent = message;
-  $("statusDot").className = "dot " + state;
+function validUrl(value) {
+  try {
+    const url = new URL(value);
+    return ["https:", "http:"].includes(url.protocol) ? url.href : "";
+  } catch {
+    return "";
+  }
 }
 
-function selectedNames(){
-  return Array.from(
-    document.querySelectorAll('input[name="selectedMember"]:checked')
-  ).map(input => input.value);
+function selectedNames() {
+  return [...document.querySelectorAll('input[name="member"]:checked')]
+    .map(input => input.value);
 }
 
-function updateSelectedCount(){
-  const names = selectedNames();
+function updateSelectedCount() {
   $("selectedCount").textContent =
-    `เลือกแล้ว ${names.length} คน • คนละ 1 คะแนน • รวมเพิ่ม ${names.length} คะแนนรายบุคคล`;
+    `เลือกแล้ว ${selectedNames().length} คน • คนละ 1 คะแนน`;
 }
 
-function buildMemberPicker(){
+function buildMembers() {
   const picker = $("memberPicker");
-  picker.innerHTML = "";
-
   MEMBERS.forEach(member => {
     const label = document.createElement("label");
     label.className = "member-choice";
 
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
-    checkbox.name = "selectedMember";
+    checkbox.name = "member";
     checkbox.value = member.name;
     checkbox.addEventListener("change", updateSelectedCount);
 
-    const name = document.createElement("span");
-    name.textContent = member.name;
+    const span = document.createElement("span");
+    span.textContent = member.name;
 
-    label.append(checkbox, name);
+    label.append(checkbox, span);
     picker.appendChild(label);
   });
 }
 
-function getConfig(){
-  try{
-    return JSON.parse(localStorage.getItem("40fps-kind-loop-config") || "null");
-  }catch{
-    return null;
+function openProof(url) {
+  const valid = validUrl(url);
+  if (!valid) {
+    alert("กรุณาวางลิงก์เว็บไซต์ที่ถูกต้องก่อน");
+    return;
   }
+  window.open(valid, "_blank", "noopener,noreferrer");
 }
 
-async function connectDatabase(url, key, saveConfig = true){
-  if(!window.supabase){
-    setStatus("โหลดไลบรารี Supabase ไม่สำเร็จ", "off");
-    return;
-  }
-
-  if(!url || !key){
-    setStatus("กรุณากรอก Project URL และ public key", "off");
-    return;
-  }
-
-  let parsed;
-  try{
-    parsed = new URL(url.trim());
-    if(parsed.protocol !== "https:") throw new Error();
-  }catch{
-    setStatus("Project URL ไม่ถูกต้อง", "off");
-    return;
-  }
-
-  $("connectBtn").disabled = true;
-  $("connectBtn").textContent = "กำลังเชื่อมต่อ...";
-
-  try{
-    const client = window.supabase.createClient(
-      parsed.origin,
-      key.trim()
-    );
-
-    const {error} = await client
-      .from("kind_of_loop_entries")
-      .select("id")
-      .limit(1);
-
-    if(error) throw error;
-
-    supabaseClient = client;
-
-    if(saveConfig){
-      localStorage.setItem("40fps-kind-loop-config", JSON.stringify({
-        url: parsed.origin,
-        key: key.trim()
-      }));
-    }
-
-    $("settingsBox").classList.remove("show");
-    setStatus("เชื่อมต่อ Supabase สำเร็จ", "on");
-    await loadEntries();
-  }catch(error){
-    supabaseClient = null;
-    setStatus("เชื่อมต่อไม่สำเร็จ: " + error.message, "off");
-    console.error(error);
-  }finally{
-    $("connectBtn").disabled = false;
-    $("connectBtn").textContent = "เชื่อมต่อและบันทึก";
-  }
-}
-
-$("settingsToggle").addEventListener("click", () => {
-  $("settingsBox").classList.toggle("show");
+$("openLinkBtn").addEventListener("click", () => {
+  openProof($("proofUrl").value.trim());
 });
 
-$("connectBtn").addEventListener("click", () => {
-  connectDatabase(
-    $("projectUrl").value,
-    $("publicKey").value
-  );
+$("clearLinkBtn").addEventListener("click", () => {
+  $("proofUrl").value = "";
 });
 
-$("clearConfigBtn").addEventListener("click", () => {
-  if(!confirm("ล้างการตั้งค่า Supabase ที่บันทึกไว้ในเบราว์เซอร์นี้หรือไม่?")) return;
-
-  localStorage.removeItem("40fps-kind-loop-config");
-  supabaseClient = null;
-  entries = [];
-  $("projectUrl").value = "";
-  $("publicKey").value = "";
-  $("settingsBox").classList.add("show");
-  setStatus("ล้างการตั้งค่าแล้ว", "off");
-  render();
+$("clearFormBtn").addEventListener("click", () => {
+  $("proofUrl").value = "";
+  $("note").value = "";
+  document.querySelectorAll('input[name="member"]').forEach(input => {
+    input.checked = false;
+  });
+  updateSelectedCount();
 });
 
-$("refreshBtn").addEventListener("click", loadEntries);
-
-$("testLinkBtn").addEventListener("click", () => {
-  const value = $("proofUrl").value.trim();
-
-  try{
-    const url = new URL(value);
-    if(url.protocol !== "https:"){
-      alert("กรุณาใช้ลิงก์ HTTPS");
-      return;
-    }
-    window.open(url.href, "_blank", "noopener,noreferrer");
-  }catch{
-    alert("กรุณาวางลิงก์ HTTPS ที่ถูกต้องก่อน");
-  }
-});
-
-$("entryForm").addEventListener("submit", async event => {
-  event.preventDefault();
-
-  if(!supabaseClient){
-    alert("กรุณาตั้งค่า Supabase และเชื่อมต่อก่อนส่งหลักฐาน");
-    $("settingsBox").classList.add("show");
-    return;
-  }
-
+$("addEntryBtn").addEventListener("click", () => {
   const names = selectedNames();
-  if(names.length === 0){
+  const proof = validUrl($("proofUrl").value.trim());
+
+  if (!proof) {
+    alert("กรุณาวางลิงก์หลักฐานก่อน");
+    $("proofUrl").focus();
+    return;
+  }
+
+  if (!names.length) {
     alert("กรุณาเลือกสมาชิกที่ร่วมเล่นอย่างน้อย 1 คน");
     return;
   }
 
-  const rawUrl = $("proofUrl").value.trim();
-  let proofUrl;
+  entries.unshift({
+    id: Date.now(),
+    names,
+    proof,
+    note: $("note").value.trim(),
+    createdAt: new Date().toLocaleString("th-TH")
+  });
 
-  try{
-    const url = new URL(rawUrl);
-    if(url.protocol !== "https:"){
-      alert("ลิงก์หลักฐานต้องขึ้นต้นด้วย https://");
-      return;
-    }
-    proofUrl = url.href;
-  }catch{
-    alert("กรุณาวางลิงก์รูปหลักฐานให้ถูกต้อง");
-    return;
-  }
-
-  const firstMember = names[0];
-  const otherMembers = names.slice(1);
-  const button = $("submitBtn");
-
-  button.disabled = true;
-  button.textContent = "กำลังบันทึก...";
-
-  try{
-    /*
-      บันทึกผู้เล่นคนแรกใน member
-      เก็บชื่อที่เหลือใน friends
-      ผู้เล่นที่เลือกทุกคนได้ 1 คะแนน
-    */
-    const {error} = await supabaseClient
-      .from("kind_of_loop_entries")
-      .insert({
-        member: firstMember,
-        points: 1,
-        players: names.length,
-        friends: otherMembers.join(", "),
-        note: $("note").value.trim(),
-        image_url: proofUrl
-      });
-
-    if(error) throw error;
-
-    $("entryForm").reset();
-    updateSelectedCount();
-    await loadEntries();
-    alert("บันทึกหลักฐานสำเร็จแล้ว!");
-  }catch(error){
-    console.error(error);
-    alert(
-      "บันทึกไม่สำเร็จ: " + error.message +
-      "\nกรุณาตรวจสอบการเชื่อมต่อและสิทธิ์ INSERT ใน Supabase"
-    );
-  }finally{
-    button.disabled = false;
-    button.textContent = "บันทึกหลักฐานและคะแนน";
-  }
+  render();
+  $("clearFormBtn").click();
 });
 
-async function loadEntries(){
-  if(!supabaseClient){
-    render();
+$("clearHistoryBtn").addEventListener("click", () => {
+  if (!entries.length) {
+    alert("ยังไม่มีประวัติให้ล้าง");
     return;
   }
-
-  setStatus("กำลังโหลดข้อมูล...", "on");
-
-  try{
-    const {data, error} = await supabaseClient
-      .from("kind_of_loop_entries")
-      .select("*")
-      .order("created_at", {ascending:false})
-      .limit(1000);
-
-    if(error) throw error;
-
-    entries = data || [];
-    render();
-    setStatus("ออนไลน์ • อัปเดตข้อมูลแล้ว", "on");
-  }catch(error){
-    setStatus("โหลดข้อมูลไม่สำเร็จ: " + error.message, "off");
-    console.error(error);
-  }
-}
-
-function recipientsFor(entry){
-  const friends = String(entry.friends || "")
-    .split(",")
-    .map(name => name.trim())
-    .filter(Boolean);
-
-  return [...new Set([entry.member, ...friends].filter(Boolean))];
-}
-
-function formatDate(value){
-  if(!value) return "ไม่ทราบวันที่";
-
-  const date = new Date(value);
-  if(Number.isNaN(date.getTime())) return "ไม่ทราบวันที่";
-
-  return date.toLocaleString("th-TH", {
-    dateStyle:"medium",
-    timeStyle:"short"
-  });
-}
-
-function validHttpsUrl(value){
-  try{
-    const url = new URL(String(value || ""));
-    return url.protocol === "https:" ? url.href : "";
-  }catch{
-    return "";
-  }
-}
-
-function render(){
-  const totals = Object.fromEntries(
-    MEMBERS.map(member => [member.name, 0])
-  );
-
-  entries.forEach(entry => {
-    const recipients = recipientsFor(entry);
-
-    /*
-      รายการใหม่มี points = 1 เสมอ
-      รายการเก่าจะใช้คะแนนเดิมที่บันทึกไว้
-    */
-    const points = Number(entry.points ?? 1);
-
-    recipients.forEach(name => {
-      totals[name] = (totals[name] || 0) + points;
-    });
-  });
-
-  $("totalEntries").textContent =
-    entries.length.toLocaleString("th-TH");
-
-  $("activeMembers").textContent =
-    Object.values(totals).filter(points => points > 0)
-      .length.toLocaleString("th-TH");
-
-  renderLeaderboard(totals);
-  renderHistory();
-}
-
-function renderLeaderboard(totals){
-  const query = $("rankSearch").value.trim().toLowerCase();
-
-  const ranked = MEMBERS.map(member => ({
-    ...member,
-    points: totals[member.name] || 0
-  }))
-  .filter(member => member.name.toLowerCase().includes(query))
-  .sort((a,b) => b.points - a.points || a.name.localeCompare(b.name));
-
-  let previousPoints = null;
-  let currentRank = 0;
-
-  $("leaderboard").innerHTML = ranked.map((member,index) => {
-    if(previousPoints === null || member.points !== previousPoints){
-      currentRank = index + 1;
-    }
-    previousPoints = member.points;
-
-    const marker = currentRank === 1 ? "🥇"
-      : currentRank === 2 ? "🥈"
-      : currentRank === 3 ? "🥉"
-      : String(currentRank);
-
-    return `
-      <div class="rankrow">
-        <div class="medal">${marker}</div>
-        <div>
-          <div class="member-name">${escapeHtml(member.name)}</div>
-          <div class="member-role">${escapeHtml(member.role)}</div>
-        </div>
-        <div class="points">${member.points.toLocaleString("th-TH")} คะแนน</div>
-      </div>`;
-  }).join("") || '<div class="empty">ไม่พบสมาชิก</div>';
-}
-
-function renderHistory(){
-  const query = $("historySearch").value.trim().toLowerCase();
-
-  const filtered = entries.filter(entry => {
-    const text = [
-      entry.member, entry.friends, entry.note, entry.image_url
-    ].join(" ").toLowerCase();
-
-    return text.includes(query);
-  });
-
-  $("history").innerHTML = filtered.map(entry => {
-    const names = recipientsFor(entry);
-    const url = validHttpsUrl(entry.image_url);
-
-    const link = url
-      ? `<a class="proof" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">🔗 เปิดรูปหลักฐาน</a>`
-      : `<div class="hint">ไม่มีลิงก์หลักฐานที่ถูกต้อง</div>`;
-
-    return `
-      <article class="card">
-        <div class="cardtop">
-          <div>
-            <strong>👥 สมาชิกที่ได้รับคะแนน</strong>
-            <p>${names.map(escapeHtml).join(", ") || "ไม่ระบุชื่อ"}</p>
-            <small>${escapeHtml(formatDate(entry.created_at))} • ${names.length} คน</small>
-          </div>
-          <div class="points">+1 / คน</div>
-        </div>
-        ${entry.note
-          ? `<p>${escapeHtml(entry.note)}</p>`
-          : ""}
-        ${link}
-      </article>`;
-  }).join("") || '<div class="empty">ยังไม่มีหลักฐานที่ส่งเข้ามา</div>';
-}
+  if (!confirm("ต้องการล้างประวัติและคะแนนชั่วคราวทั้งหมดหรือไม่?")) return;
+  entries = [];
+  render();
+});
 
 $("rankSearch").addEventListener("input", render);
 $("historySearch").addEventListener("input", render);
 
-$("csvBtn").addEventListener("click", () => {
-  const rows = [[
-    "สมาชิกที่ได้รับคะแนน",
-    "คะแนนต่อคน",
-    "จำนวนสมาชิก",
-    "หมายเหตุ",
-    "วันที่",
-    "ลิงก์หลักฐาน"
-  ]];
+function render() {
+  const totals = Object.fromEntries(MEMBERS.map(m => [m.name, 0]));
 
   entries.forEach(entry => {
-    rows.push([
-      recipientsFor(entry).join("; "),
-      entry.points ?? 1,
-      entry.players ?? recipientsFor(entry).length,
-      entry.note || "",
-      entry.created_at || "",
-      entry.image_url || ""
-    ]);
+    entry.names.forEach(name => {
+      totals[name] = (totals[name] || 0) + 1;
+    });
   });
 
-  const csv = "\ufeff" + rows.map(row =>
-    row.map(value =>
-      '"' + String(value ?? "").replace(/"/g, '""') + '"'
-    ).join(",")
-  ).join("\r\n");
+  $("totalEntries").textContent = entries.length;
+  $("activeMembers").textContent =
+    Object.values(totals).filter(score => score > 0).length;
 
-  const objectUrl = URL.createObjectURL(
-    new Blob([csv], {type:"text/csv;charset=utf-8;"})
+  const search = $("rankSearch").value.trim().toLowerCase();
+  const ranked = MEMBERS
+    .map(m => ({...m, points: totals[m.name] || 0}))
+    .filter(m => m.name.toLowerCase().includes(search))
+    .sort((a,b) => b.points - a.points || a.name.localeCompare(b.name));
+
+  let lastScore = null;
+  let rank = 0;
+
+  $("leaderboard").innerHTML = ranked.map((m, i) => {
+    if (lastScore === null || m.points !== lastScore) rank = i + 1;
+    lastScore = m.points;
+    const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" :
+      rank === 3 ? "🥉" : rank;
+
+    return `<div class="rankrow">
+      <div class="medal">${medal}</div>
+      <div>
+        <div class="member-name">${escapeHtml(m.name)}</div>
+        <div class="member-role">${escapeHtml(m.role)}</div>
+      </div>
+      <div class="points">${m.points} คะแนน</div>
+    </div>`;
+  }).join("") || '<div class="empty">ไม่พบสมาชิก</div>';
+
+  const historySearch = $("historySearch").value.trim().toLowerCase();
+  const filtered = entries.filter(e =>
+    [...e.names, e.note, e.proof].join(" ").toLowerCase().includes(historySearch)
   );
 
-  const link = document.createElement("a");
-  link.href = objectUrl;
-  link.download = "40FPS-Kind-of-Loop.csv";
-  link.click();
-
-  setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
-});
-
-buildMemberPicker();
-render();
-
-const savedConfig = getConfig();
-
-if(savedConfig){
-  $("projectUrl").value = savedConfig.url || "";
-  $("publicKey").value = savedConfig.key || "";
-  connectDatabase(savedConfig.url, savedConfig.key, false);
-}else{
-  $("settingsBox").classList.add("show");
-  setStatus("กรุณาตั้งค่า Supabase เพื่อเริ่มใช้งาน", "off");
+  $("history").innerHTML = filtered.map(entry => `
+    <article class="card">
+      <strong>👥 ${entry.names.map(escapeHtml).join(", ")}</strong>
+      <p>${escapeHtml(entry.createdAt)} • คนละ 1 คะแนน</p>
+      ${entry.note ? `<p>${escapeHtml(entry.note)}</p>` : ""}
+      <a class="proof" href="${escapeHtml(entry.proof)}"
+         target="_blank" rel="noopener noreferrer">🔗 เปิดลิงก์หลักฐาน</a>
+    </article>
+  `).join("") || '<div class="empty">ยังไม่มีประวัติในหน้านี้</div>';
 }
+
+buildMembers();
+render();
 </script>
 </body>
 </html>
