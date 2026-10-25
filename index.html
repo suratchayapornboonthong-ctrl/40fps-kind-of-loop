@@ -1,474 +1,692 @@
 
-<!doctype html>
+<!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>40FPS • Kind of Loop</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0b1020">
+<title>40FPS | Kind of Loop</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-:root{--bg:#0b1020;--panel:#151d32;--panel2:#1d2942;--line:#2b3958;--text:#f4f7ff;--muted:#a8b5d0;--accent:#8b7cff;--cyan:#58d9e8;--good:#75e0ad;--danger:#ff8e9a}
+:root{
+  --bg:#0b1020;--panel:#151d32;--panel2:#1c2943;
+  --line:#2c3a59;--text:#f4f7ff;--muted:#aab7d0;
+  --purple:#8b7cff;--cyan:#58d9e8;--red:#ff8797;
+}
 *{box-sizing:border-box}
-body{margin:0;background:radial-gradient(circle at top right,#25235a 0,transparent 35%),var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
-.wrap{max-width:1100px;margin:auto;padding:24px 16px 48px}
-.hero{padding:26px;border:1px solid var(--line);border-radius:24px;background:linear-gradient(135deg,#20284a,#151d32 65%);margin-bottom:20px}
-.kicker{color:var(--cyan);font-weight:800;letter-spacing:.12em;font-size:.75rem}
-.hero h1{margin:8px 0;font-size:clamp(1.7rem,4vw,2.7rem)}
-.hero p{margin:0;color:var(--muted)}
-.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:20px}
-.stat{background:#0d1427aa;border:1px solid var(--line);padding:14px;border-radius:16px}
-.stat span{display:block;color:var(--muted);font-size:.85rem}
-.stat strong{font-size:1.5rem}
-.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:20px;min-width:0}
-.panel h2{margin:0 0 16px;font-size:1.15rem}
-label{display:block;color:#d9e2f7;font-size:.9rem;margin:13px 0 7px}
-input,textarea{width:100%;border:1px solid #394968;background:#0d1427;color:var(--text);padding:12px 13px;border-radius:11px;font:inherit;outline:none}
-input:focus,textarea:focus{border-color:var(--accent)}
-input[type=file]{padding:9px}
-button{border:0;border-radius:11px;padding:12px 16px;font:inherit;font-weight:800;cursor:pointer;background:var(--accent);color:white}
-button:hover{filter:brightness(1.08)}
+body{
+  margin:0;background:radial-gradient(ellipse at top right,#292451 0,transparent 40%),var(--bg);
+  color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+.wrap{max-width:1100px;margin:auto;padding:24px 15px 50px}
+.hero,.panel{
+  border:1px solid var(--line);border-radius:20px;
+  background:var(--panel);padding:20px;margin-bottom:18px;
+}
+.hero{background:linear-gradient(135deg,#24264a,#151d32 75%);padding:25px}
+.kicker{font-size:12px;font-weight:900;letter-spacing:2px;color:var(--cyan)}
+h1{font-size:clamp(26px,5vw,42px);margin:8px 0}
+h2{font-size:19px;margin:0 0 16px}
+.sub{color:var(--muted);line-height:1.65;margin:0}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:20px}
+.stat{padding:15px;border:1px solid var(--line);border-radius:14px;background:#0d1427}
+.stat span{display:block;font-size:13px;color:var(--muted)}
+.stat strong{display:block;font-size:27px;margin-top:4px}
+.status{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);margin-top:15px}
+.dot{width:9px;height:9px;background:#f0bd63;border-radius:50%;flex-shrink:0}
+.dot.on{background:#69e0a7}.dot.off{background:var(--red)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.panel{min-width:0}
+.full{grid-column:1/-1}
+label.field{display:block;font-size:14px;margin:14px 0 7px}
+input[type=text],input[type=url],input[type=password],textarea{
+  display:block;width:100%;padding:12px 13px;color:var(--text);
+  background:#0c1427;border:1px solid #394968;border-radius:11px;outline:none;
+}
+input:focus,textarea:focus{border-color:var(--purple)}
+textarea{resize:vertical}
+.hint{font-size:12px;color:var(--muted);line-height:1.65;margin-top:7px}
+.picker{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;
+  padding:10px;background:#0c1427;border:1px solid #394968;border-radius:12px;
+  max-height:300px;overflow:auto;
+}
+.member-choice{
+  display:flex;align-items:center;gap:8px;padding:10px;margin:0;
+  border:1px solid var(--line);border-radius:9px;background:#111a2e;
+  font-size:13px;overflow-wrap:anywhere;cursor:pointer;
+}
+.member-choice input{accent-color:var(--purple);flex-shrink:0}
+.member-choice:has(input:checked){background:#292449;border-color:var(--purple)}
+button{
+  padding:11px 15px;border:0;border-radius:10px;
+  background:var(--purple);color:white;font-weight:800;
+}
 button.secondary{background:var(--panel2);border:1px solid var(--line)}
-button:disabled{opacity:.55;cursor:wait}
-.hint{font-size:.8rem;color:var(--muted);margin-top:7px}
-.preview{display:none;width:100%;max-height:260px;object-fit:contain;background:#0a0f1d;border-radius:12px;margin-top:10px;border:1px solid var(--line)}
-.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:17px}
-.toolbar{display:flex;gap:10px;align-items:center;margin-bottom:12px}
-.toolbar input{flex:1;min-width:0}
-.leaderboard,.submissions{display:flex;flex-direction:column;gap:9px}
-.person{display:grid;grid-template-columns:42px minmax(0,1fr) auto;gap:11px;align-items:center;background:#10182b;border:1px solid var(--line);padding:11px;border-radius:13px}
-.rank{width:36px;height:36px;display:grid;place-items:center;border-radius:10px;background:var(--panel2);font-weight:900}
-.personname{font-weight:750;overflow-wrap:anywhere}
-.role{font-size:.75rem;color:var(--muted)}
-.points{text-align:right;font-weight:900;color:var(--cyan);white-space:nowrap}
-.entry{border:1px solid var(--line);border-radius:14px;padding:13px;background:#10182b}
-.entrytop{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
-.entry small{color:var(--muted)}
-.proof-link{display:inline-flex;margin-top:12px;padding:10px 13px;border:1px solid #4b5d86;border-radius:10px;background:#1d2942;color:#bfcaff;font-weight:800;text-decoration:none;overflow-wrap:anywhere}
-.proof-link:hover{background:#28234b;text-decoration:underline}
-.proof-url{display:block;margin-top:7px;color:var(--muted);font-size:.75rem;overflow-wrap:anywhere}
+button:disabled{opacity:.6;cursor:wait}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:15px}
+.notice{
+  padding:12px;border:1px solid var(--line);border-radius:11px;
+  background:#10182b;color:var(--muted);font-size:12px;line-height:1.7;margin-top:15px;
+}
+.toolbar{display:flex;gap:8px;margin-bottom:12px}
+.toolbar input{min-width:0;flex:1}
+.leaderboard,.history{display:flex;flex-direction:column;gap:9px}
+.rankrow{
+  display:grid;grid-template-columns:42px minmax(0,1fr) auto;gap:10px;
+  align-items:center;background:#10182b;border:1px solid var(--line);
+  padding:11px;border-radius:12px;
+}
+.medal{width:36px;height:36px;display:grid;place-items:center;background:var(--panel2);border-radius:10px;font-weight:900}
+.member-name{font-weight:800;overflow-wrap:anywhere}
+.member-role{font-size:12px;color:var(--muted);margin-top:3px}
+.points{font-weight:900;color:var(--cyan);white-space:nowrap;text-align:right}
+.card{background:#10182b;border:1px solid var(--line);border-radius:13px;padding:14px;overflow-wrap:anywhere}
+.cardtop{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.card small{color:var(--muted)}
+.card p{line-height:1.65;margin:10px 0}
+.proof{
+  display:inline-block;margin-top:6px;padding:10px 12px;
+  border:1px solid #4b5d86;border-radius:9px;background:#202b47;
+  color:#d4d0ff;text-decoration:none;font-weight:800;overflow-wrap:anywhere;
+}
+.proof:hover{text-decoration:underline}
 .empty{padding:22px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:12px}
-.friend-picker{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:10px;border:1px solid #394968;background:#0d1427;border-radius:12px;max-height:260px;overflow:auto}
-.friend-option{display:flex;align-items:center;gap:8px;margin:0;padding:9px;border:1px solid var(--line);border-radius:9px;background:#10182b;cursor:pointer;color:var(--text);font-size:.85rem}
-.friend-option input{width:auto;margin:0;accent-color:var(--accent)}
-.friend-option:has(input:checked){border-color:var(--accent);background:#28234b}
-.notice{font-size:.82rem;color:#c9d4ee;line-height:1.6;background:#10182b;border:1px solid var(--line);padding:12px;border-radius:12px;margin-top:14px}
-.status{display:inline-flex;align-items:center;gap:7px;margin-top:14px;padding:7px 11px;border:1px solid var(--line);border-radius:999px;font-size:.8rem;color:var(--muted)}
-.dot{width:8px;height:8px;border-radius:50%;background:#f2c76c}
-.dot.on{background:var(--good)}
-.dot.off{background:var(--danger)}
-.config{display:none;margin-top:14px;padding:14px;border:1px solid var(--line);border-radius:14px;background:#10182b}
-.config.show{display:block}
-.configgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-@media(max-width:760px){.grid{grid-template-columns:1fr}.stats{grid-template-columns:1fr}.configgrid{grid-template-columns:1fr}.wrap{padding:14px 10px 30px}.hero,.panel{padding:17px}}
+.settings{display:none;margin-top:16px;padding:15px;border:1px solid var(--line);border-radius:13px;background:#0f172a}
+.settings.show{display:block}
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:760px){
+  .grid{grid-template-columns:1fr}.full{grid-column:auto}
+  .wrap{padding:13px 10px 30px}.hero,.panel{padding:16px}
+  .settings-grid{grid-template-columns:1fr}
+}
 </style>
 </head>
+
 <body>
 <div class="wrap">
+
 <header class="hero">
-  <div class="kicker">40FPS GANG • KIND OF LOOP</div>
-  <h1>🏁 กระดานคะแนน Kind of Loop</h1>
-  <p>เลือกสมาชิกที่ร่วมเล่น แนบรูปหลักฐาน สมาชิกที่เลือกแต่ละคนได้คนละ 1 คะแนน</p>
+  <div class="kicker">40FPS GANG • ONLINE SCOREBOARD</div>
+  <h1>🏁 Kind of Loop</h1>
+  <p class="sub">ส่งหลักฐานด้วยลิงก์ เลือกสมาชิกที่ร่วมเล่น และรับคะแนนรายบุคคล</p>
+
   <div class="stats">
-    <div class="stat"><span>หลักฐานที่ส่งแล้ว</span><strong id="totalEntries">0</strong></div>
-    <div class="stat"><span>สมาชิกที่มีคะแนน</span><strong id="activeMembers">0</strong></div>
+    <div class="stat">
+      <span>หลักฐานทั้งหมด</span>
+      <strong id="totalEntries">0</strong>
+    </div>
+    <div class="stat">
+      <span>สมาชิกที่มีคะแนน</span>
+      <strong id="activeMembers">0</strong>
+    </div>
   </div>
-  <div class="status"><span class="dot" id="statusDot"></span><span id="statusText">ยังไม่ได้เชื่อมฐานข้อมูลออนไลน์</span></div>
+
+  <div class="status">
+    <span class="dot" id="statusDot"></span>
+    <span id="statusText">ยังไม่ได้เชื่อมต่อฐานข้อมูล</span>
+  </div>
+
   <div class="actions">
-    <button class="secondary" id="configToggle" type="button">⚙ ตั้งค่าฐานข้อมูล</button>
-    <button class="secondary" id="refreshBtn" type="button">↻ โหลดข้อมูลใหม่</button>
+    <button type="button" class="secondary" id="settingsToggle">⚙ ตั้งค่า Supabase</button>
+    <button type="button" class="secondary" id="refreshBtn">↻ โหลดข้อมูลใหม่</button>
   </div>
-  <div class="config" id="configBox">
-    <strong>เชื่อมต่อ Supabase</strong>
-    <div class="hint">กรอก Project URL และ Publishable/anon key จาก Supabase ของคุณ ค่านี้จะบันทึกไว้ในเบราว์เซอร์เครื่องนี้</div>
-    <div class="configgrid">
-      <div><label for="projectUrl">Supabase Project URL</label><input id="projectUrl" placeholder="https://xxxx.supabase.co"></div>
-      <div><label for="anonKey">Publishable / anon key</label><input id="anonKey" placeholder="sb_publishable_... หรือ anon key"></div>
+
+  <div class="settings" id="settingsBox">
+    <strong>เชื่อมต่อฐานข้อมูลออนไลน์</strong>
+    <p class="hint">กรอก Project URL และ Publishable key หรือ anon key จากหน้า Project Settings / API ของ Supabase</p>
+    <div class="settings-grid">
+      <div>
+        <label class="field" for="projectUrl">Project URL</label>
+        <input id="projectUrl" type="url" placeholder="https://xxxx.supabase.co" autocomplete="url">
+      </div>
+      <div>
+        <label class="field" for="publicKey">Publishable / anon key</label>
+        <input id="publicKey" type="password" placeholder="วาง public key ของโปรเจกต์" autocomplete="off">
+      </div>
     </div>
     <div class="actions">
-      <button id="connectBtn" type="button">เชื่อมต่อ</button>
-      <button id="forgetConfig" class="secondary" type="button">ล้างการตั้งค่า</button>
+      <button id="connectBtn" type="button">เชื่อมต่อและบันทึก</button>
+      <button id="clearConfigBtn" class="secondary" type="button">ล้างการตั้งค่าในเครื่องนี้</button>
     </div>
   </div>
 </header>
 
 <div class="grid">
+
 <section class="panel">
-  <h2>📤 ส่งหลักฐานและเพิ่มคะแนน</h2>
+  <h2>📤 ส่งหลักฐาน</h2>
+
   <form id="entryForm">
-    <label>เลือกชื่อสมาชิกที่ร่วมเล่น *</label>
-    <div id="friendPicker" class="friend-picker"></div>
-    <div id="selectedCount" class="hint">เลือกแล้ว 0 คน • คนละ 1 คะแนน</div>
-    <label for="proof">รูปหลักฐาน *</label>
-    <input id="proof" type="file" accept="image/jpeg,image/png,image/webp,image/gif" required>
-    <img id="preview" class="preview" alt="ตัวอย่างรูปหลักฐาน">
-    <label for="note">หมายเหตุ (ถ้ามี)</label>
-    <textarea id="note" rows="2" placeholder="รายละเอียดรอบ / หมายเหตุ"></textarea>
+    <label class="field">เลือกชื่อสมาชิกที่ร่วมเล่น *</label>
+    <div class="picker" id="memberPicker"></div>
+    <p class="hint" id="selectedCount">เลือกแล้ว 0 คน • คนละ 1 คะแนน</p>
+
+    <label class="field" for="proofUrl">🔗 ลิงก์รูปหลักฐาน *</label>
+    <input id="proofUrl" type="url" placeholder="https:// วางลิงก์รูปตรงนี้" required>
+    <p class="hint">ใช้ลิงก์ HTTPS ที่เปิดดูได้สำหรับสมาชิกในเซิร์ฟเวอร์ เช่น ลิงก์รูปที่แชร์สาธารณะ</p>
+    <div class="actions">
+      <button id="testLinkBtn" class="secondary" type="button">↗ ทดสอบเปิดลิงก์</button>
+    </div>
+
+    <label class="field" for="note">หมายเหตุ (ถ้ามี)</label>
+    <textarea id="note" rows="3" placeholder="รายละเอียดรอบหรือหมายเหตุ"></textarea>
+
     <div class="actions">
       <button id="submitBtn" type="submit">บันทึกหลักฐานและคะแนน</button>
       <button type="reset" class="secondary">ล้างแบบฟอร์ม</button>
     </div>
-    <div class="hint">ทุกชื่อที่ติ๊กจะได้ 1 คะแนนต่อการส่งหลักฐานครั้งนี้ ไม่ต้องเลือกชื่อผู้ส่งแยก</div>
   </form>
-  <div class="notice">ระบบใช้ฐานข้อมูล Supabase และ Storage bucket ชื่อ <code>kind-of-loop-proofs</code> ห้ามนำ Secret key หรือ service_role key มาใส่ในเว็บไซต์</div>
+
+  <div class="notice">
+    กติกาคะแนน: สมาชิกทุกคนที่เลือกจะได้คนละ 1 คะแนนต่อหลักฐานหนึ่งรายการ
+    ไม่มีช่องกรอกคะแนนเอง และไม่มีคะแนนรวมทีม
+  </div>
 </section>
 
 <section class="panel">
-  <h2>🏆 อันดับคะแนนรายบุคคล</h2>
-  <div class="toolbar"><input id="search" placeholder="ค้นหาชื่อสมาชิก…"><button class="secondary" id="exportBtn" type="button">ส่งออก CSV</button></div>
-  <div id="leaderboard" class="leaderboard"></div>
+  <h2>🏆 อันดับรายบุคคล</h2>
+  <div class="toolbar">
+    <input id="rankSearch" type="text" placeholder="ค้นหาชื่อสมาชิก...">
+    <button id="csvBtn" type="button" class="secondary">CSV</button>
+  </div>
+  <div class="leaderboard" id="leaderboard"></div>
 </section>
 
-<section class="panel" style="grid-column:1/-1">
+<section class="panel full">
   <h2>🧾 ประวัติหลักฐาน</h2>
-  <div class="toolbar"><input id="entrySearch" placeholder="ค้นหาชื่อสมาชิก / หมายเหตุ…"></div>
-  <div id="submissions" class="submissions"></div>
+  <div class="toolbar">
+    <input id="historySearch" type="text" placeholder="ค้นหาชื่อหรือหมายเหตุ...">
+  </div>
+  <div class="history" id="history"></div>
 </section>
+
 </div>
 </div>
 
 <script>
-const members=[
-["Skyler Florence","👑 หัวหน้า"],
-["June awa","💎 Co-Leader"],
-["Salapao Eiei","💎 Co-Leader"],
-["Farfare Sumerise","👤 สมาชิก"],
-["KENJI KEN","👤 สมาชิก"],
-["Peepee Ozxzia","👤 สมาชิก"],
-["So Derric","👤 สมาชิก"],
-["Lek Luvu","👤 สมาชิก"],
-["Warin Duckly","👤 สมาชิก"],
-["candy rolie","👤 สมาชิก"],
-["Daniel Rabamtep","👤 สมาชิก"],
-["Attrix Stanthekid","👤 สมาชิก"],
-["Zayra Justyouknow","👤 สมาชิก"],
-["SININE SERK","👤 สมาชิก"],
-["Nongyu Skibidi","👤 สมาชิก"],
-["Juxs Diamondstyle","👤 สมาชิก"],
-["Pond Eiei","👤 สมาชิก"],
-["Nox Fein","👤 สมาชิก"],
-["Arm Nelly","👤 สมาชิก"],
-["Harper Steph","👤 สมาชิก"],
-["Oreo Glenxlough","👤 สมาชิก"],
-["Smokey Fernandes","👤 สมาชิก"],
-["Taco Chatjennailenrao","👤 สมาชิก"],
-["Josave Overlove","👤 สมาชิก"],
-["Somchay Mirror","👤 สมาชิก"]
+"use strict";
+
+/*
+  40FPS Kind of Loop
+  ใช้ตารางเดิม: kind_of_loop_entries
+  ใช้คอลัมน์เดิม: member, points, players, friends, note,
+                   image_url, created_at
+
+  แก้รายชื่อสมาชิกได้ใน MEMBERS ด้านล่าง
+*/
+
+const MEMBERS = [
+  {name:"Skyler Florence",role:"หัวหน้า"},
+  {name:"June awa",role:"Co-Leader"},
+  {name:"Salapao Eiei",role:"Co-Leader"},
+  {name:"Farfare Sumerise",role:"สมาชิก"},
+  {name:"KENJI KEN",role:"สมาชิก"},
+  {name:"Peepee Ozxzia",role:"สมาชิก"},
+  {name:"So Derric",role:"สมาชิก"},
+  {name:"Lek Luvu",role:"สมาชิก"},
+  {name:"Warin Duckly",role:"สมาชิก"},
+  {name:"candy rolie",role:"สมาชิก"},
+  {name:"Daniel Rabamtep",role:"สมาชิก"},
+  {name:"Attrix Stanthekid",role:"สมาชิก"},
+  {name:"Zayra Justyouknow",role:"สมาชิก"},
+  {name:"SININE SERK",role:"สมาชิก"},
+  {name:"Nongyu Skibidi",role:"สมาชิก"},
+  {name:"Juxs Diamondstyle",role:"สมาชิก"},
+  {name:"Pond Eiei",role:"สมาชิก"},
+  {name:"Nox Fein",role:"สมาชิก"},
+  {name:"Arm Nelly",role:"สมาชิก"},
+  {name:"Harper Steph",role:"สมาชิก"}
 ];
 
-const $=id=>document.getElementById(id);
-let db=null,entries=[],pendingImage=null;
+const $ = id => document.getElementById(id);
+let supabaseClient = null;
+let entries = [];
 
-members.forEach(([name])=>{
-  const label=document.createElement("label");
-  label.className="friend-option";
-  const cb=document.createElement("input");
-  cb.type="checkbox";
-  cb.name="friendName";
-  cb.value=name;
-  const span=document.createElement("span");
-  span.textContent=name;
-  label.append(cb,span);
-  $("friendPicker").appendChild(label);
-  cb.addEventListener("change",updateSelectedCount);
-});
-
-function esc(s){
-  return String(s??"").replace(/[&<>"']/g,c=>({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-  }[c]));
+function escapeHtml(value){
+  return String(value ?? "").replace(/[&<>"']/g, ch => ({
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#39;"
+  })[ch]);
 }
 
-function setStatus(text,on){
-  $("statusText").textContent=text;
-  $("statusDot").className="dot "+(on?"on":"off");
+function setStatus(message, state){
+  $("statusText").textContent = message;
+  $("statusDot").className = "dot " + state;
 }
 
-function config(){
-  try{return JSON.parse(localStorage.getItem("40fps-supabase-config")||"null")}
-  catch{return null}
+function selectedNames(){
+  return Array.from(
+    document.querySelectorAll('input[name="selectedMember"]:checked')
+  ).map(input => input.value);
 }
 
-async function connect(url,key,save=true){
-  if(!url||!key){
-    setStatus("กรุณากรอก Project URL และ key",false);
+function updateSelectedCount(){
+  const names = selectedNames();
+  $("selectedCount").textContent =
+    `เลือกแล้ว ${names.length} คน • คนละ 1 คะแนน • รวมเพิ่ม ${names.length} คะแนนรายบุคคล`;
+}
+
+function buildMemberPicker(){
+  const picker = $("memberPicker");
+  picker.innerHTML = "";
+
+  MEMBERS.forEach(member => {
+    const label = document.createElement("label");
+    label.className = "member-choice";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.name = "selectedMember";
+    checkbox.value = member.name;
+    checkbox.addEventListener("change", updateSelectedCount);
+
+    const name = document.createElement("span");
+    name.textContent = member.name;
+
+    label.append(checkbox, name);
+    picker.appendChild(label);
+  });
+}
+
+function getConfig(){
+  try{
+    return JSON.parse(localStorage.getItem("40fps-kind-loop-config") || "null");
+  }catch{
+    return null;
+  }
+}
+
+async function connectDatabase(url, key, saveConfig = true){
+  if(!window.supabase){
+    setStatus("โหลดไลบรารี Supabase ไม่สำเร็จ", "off");
     return;
   }
-  try{
-    const client=window.supabase.createClient(
-      url.trim().replace(/\/$/,""),key.trim()
-    );
-    const {error}=await client.from("kind_of_loop_entries").select("id").limit(1);
-    if(error)throw error;
 
-    db=client;
-    if(save){
-      localStorage.setItem("40fps-supabase-config",JSON.stringify({
-        url:url.trim().replace(/\/$/,""),key:key.trim()
+  if(!url || !key){
+    setStatus("กรุณากรอก Project URL และ public key", "off");
+    return;
+  }
+
+  let parsed;
+  try{
+    parsed = new URL(url.trim());
+    if(parsed.protocol !== "https:") throw new Error();
+  }catch{
+    setStatus("Project URL ไม่ถูกต้อง", "off");
+    return;
+  }
+
+  $("connectBtn").disabled = true;
+  $("connectBtn").textContent = "กำลังเชื่อมต่อ...";
+
+  try{
+    const client = window.supabase.createClient(
+      parsed.origin,
+      key.trim()
+    );
+
+    const {error} = await client
+      .from("kind_of_loop_entries")
+      .select("id")
+      .limit(1);
+
+    if(error) throw error;
+
+    supabaseClient = client;
+
+    if(saveConfig){
+      localStorage.setItem("40fps-kind-loop-config", JSON.stringify({
+        url: parsed.origin,
+        key: key.trim()
       }));
     }
-    setStatus("เชื่อมต่อฐานข้อมูลออนไลน์แล้ว",true);
-    $("configBox").classList.remove("show");
+
+    $("settingsBox").classList.remove("show");
+    setStatus("เชื่อมต่อ Supabase สำเร็จ", "on");
     await loadEntries();
-  }catch(e){
-    db=null;
-    setStatus("เชื่อมต่อไม่สำเร็จ: "+(e.message||"ตรวจสอบการตั้งค่า"),false);
-    console.error(e);
+  }catch(error){
+    supabaseClient = null;
+    setStatus("เชื่อมต่อไม่สำเร็จ: " + error.message, "off");
+    console.error(error);
+  }finally{
+    $("connectBtn").disabled = false;
+    $("connectBtn").textContent = "เชื่อมต่อและบันทึก";
   }
 }
 
-$("configToggle").onclick=()=>$("configBox").classList.toggle("show");
-$("connectBtn").onclick=()=>connect($("projectUrl").value,$("anonKey").value);
+$("settingsToggle").addEventListener("click", () => {
+  $("settingsBox").classList.toggle("show");
+});
 
-$("forgetConfig").onclick=()=>{
-  localStorage.removeItem("40fps-supabase-config");
-  db=null;
-  entries=[];
+$("connectBtn").addEventListener("click", () => {
+  connectDatabase(
+    $("projectUrl").value,
+    $("publicKey").value
+  );
+});
+
+$("clearConfigBtn").addEventListener("click", () => {
+  if(!confirm("ล้างการตั้งค่า Supabase ที่บันทึกไว้ในเบราว์เซอร์นี้หรือไม่?")) return;
+
+  localStorage.removeItem("40fps-kind-loop-config");
+  supabaseClient = null;
+  entries = [];
+  $("projectUrl").value = "";
+  $("publicKey").value = "";
+  $("settingsBox").classList.add("show");
+  setStatus("ล้างการตั้งค่าแล้ว", "off");
   render();
-  $("projectUrl").value="";
-  $("anonKey").value="";
-  setStatus("ล้างการตั้งค่าแล้ว",false);
-};
+});
 
-$("refreshBtn").onclick=()=>loadEntries();
+$("refreshBtn").addEventListener("click", loadEntries);
 
-const saved=config();
-if(saved){
-  $("projectUrl").value=saved.url;
-  $("anonKey").value=saved.key;
-  connect(saved.url,saved.key,false);
-}else{
-  $("configBox").classList.add("show");
-}
+$("testLinkBtn").addEventListener("click", () => {
+  const value = $("proofUrl").value.trim();
 
-$("proof").addEventListener("change",e=>{
-  const f=e.target.files[0];
-  pendingImage=null;
-  if(!f){
-    $("preview").style.display="none";
+  try{
+    const url = new URL(value);
+    if(url.protocol !== "https:"){
+      alert("กรุณาใช้ลิงก์ HTTPS");
+      return;
+    }
+    window.open(url.href, "_blank", "noopener,noreferrer");
+  }catch{
+    alert("กรุณาวางลิงก์ HTTPS ที่ถูกต้องก่อน");
+  }
+});
+
+$("entryForm").addEventListener("submit", async event => {
+  event.preventDefault();
+
+  if(!supabaseClient){
+    alert("กรุณาตั้งค่า Supabase และเชื่อมต่อก่อนส่งหลักฐาน");
+    $("settingsBox").classList.add("show");
     return;
   }
-  if(!["image/jpeg","image/png","image/webp","image/gif"].includes(f.type)){
-    alert("รองรับ JPG, PNG, WEBP และ GIF เท่านั้น");
-    e.target.value="";
+
+  const names = selectedNames();
+  if(names.length === 0){
+    alert("กรุณาเลือกสมาชิกที่ร่วมเล่นอย่างน้อย 1 คน");
     return;
   }
-  if(f.size>5*1024*1024){
-    alert("รูปมีขนาดเกิน 5 MB กรุณาย่อรูปก่อนส่ง");
-    e.target.value="";
+
+  const rawUrl = $("proofUrl").value.trim();
+  let proofUrl;
+
+  try{
+    const url = new URL(rawUrl);
+    if(url.protocol !== "https:"){
+      alert("ลิงก์หลักฐานต้องขึ้นต้นด้วย https://");
+      return;
+    }
+    proofUrl = url.href;
+  }catch{
+    alert("กรุณาวางลิงก์รูปหลักฐานให้ถูกต้อง");
     return;
   }
-  pendingImage=f;
-  $("preview").src=URL.createObjectURL(f);
-  $("preview").style.display="block";
+
+  const firstMember = names[0];
+  const otherMembers = names.slice(1);
+  const button = $("submitBtn");
+
+  button.disabled = true;
+  button.textContent = "กำลังบันทึก...";
+
+  try{
+    /*
+      บันทึกผู้เล่นคนแรกใน member
+      เก็บชื่อที่เหลือใน friends
+      ผู้เล่นที่เลือกทุกคนได้ 1 คะแนน
+    */
+    const {error} = await supabaseClient
+      .from("kind_of_loop_entries")
+      .insert({
+        member: firstMember,
+        points: 1,
+        players: names.length,
+        friends: otherMembers.join(", "),
+        note: $("note").value.trim(),
+        image_url: proofUrl
+      });
+
+    if(error) throw error;
+
+    $("entryForm").reset();
+    updateSelectedCount();
+    await loadEntries();
+    alert("บันทึกหลักฐานสำเร็จแล้ว!");
+  }catch(error){
+    console.error(error);
+    alert(
+      "บันทึกไม่สำเร็จ: " + error.message +
+      "\nกรุณาตรวจสอบการเชื่อมต่อและสิทธิ์ INSERT ใน Supabase"
+    );
+  }finally{
+    button.disabled = false;
+    button.textContent = "บันทึกหลักฐานและคะแนน";
+  }
 });
 
 async function loadEntries(){
-  if(!db){
-    entries=[];
+  if(!supabaseClient){
     render();
     return;
   }
+
+  setStatus("กำลังโหลดข้อมูล...", "on");
+
   try{
-    const {data,error}=await db.from("kind_of_loop_entries")
-      .select("*").order("created_at",{ascending:false}).limit(500);
-    if(error)throw error;
-    entries=data||[];
+    const {data, error} = await supabaseClient
+      .from("kind_of_loop_entries")
+      .select("*")
+      .order("created_at", {ascending:false})
+      .limit(1000);
+
+    if(error) throw error;
+
+    entries = data || [];
     render();
-    setStatus("ออนไลน์ • โหลดข้อมูลล่าสุดแล้ว",true);
-  }catch(e){
-    setStatus("โหลดข้อมูลไม่สำเร็จ: "+e.message,false);
+    setStatus("ออนไลน์ • อัปเดตข้อมูลแล้ว", "on");
+  }catch(error){
+    setStatus("โหลดข้อมูลไม่สำเร็จ: " + error.message, "off");
+    console.error(error);
   }
 }
 
-$("entryForm").addEventListener("submit",async e=>{
-  e.preventDefault();
+function recipientsFor(entry){
+  const friends = String(entry.friends || "")
+    .split(",")
+    .map(name => name.trim())
+    .filter(Boolean);
 
-  if(!db){
-    alert("กรุณาตั้งค่าและเชื่อมต่อ Supabase ก่อนส่งหลักฐาน");
-    $("configBox").classList.add("show");
-    return;
-  }
-  if(!pendingImage){
-    alert("กรุณาแนบรูปหลักฐาน");
-    return;
-  }
+  return [...new Set([entry.member, ...friends].filter(Boolean))];
+}
 
-  const selected=[
-    ...document.querySelectorAll('input[name="friendName"]:checked')
-  ].map(x=>x.value);
+function formatDate(value){
+  if(!value) return "ไม่ทราบวันที่";
 
-  if(!selected.length){
-    alert("กรุณาเลือกสมาชิกอย่างน้อย 1 คน");
-    return;
-  }
+  const date = new Date(value);
+  if(Number.isNaN(date.getTime())) return "ไม่ทราบวันที่";
 
-  const member=selected[0];
-  const friends=selected.slice(1);
-  const points=1;
-  const players=selected.length;
-  const btn=$("submitBtn");
-  btn.disabled=true;
-  btn.textContent="กำลังบันทึก…";
+  return date.toLocaleString("th-TH", {
+    dateStyle:"medium",
+    timeStyle:"short"
+  });
+}
 
+function validHttpsUrl(value){
   try{
-    const ext=(pendingImage.name.split(".").pop()||"jpg")
-      .toLowerCase().replace(/[^a-z0-9]/g,"")||"jpg";
-    const path=`${Date.now()}-${crypto.randomUUID()}.${ext}`;
-
-    const {error:upErr}=await db.storage
-      .from("kind-of-loop-proofs")
-      .upload(path,pendingImage,{
-        contentType:pendingImage.type,upsert:false
-      });
-    if(upErr)throw upErr;
-
-    const {data:pub}=db.storage
-      .from("kind-of-loop-proofs").getPublicUrl(path);
-
-    const {error}=await db.from("kind_of_loop_entries").insert({
-      member,
-      points,
-      players,
-      friends:friends.join(", "),
-      note:$("note").value.trim(),
-      image_url:pub.publicUrl
-    });
-    if(error)throw error;
-
-    e.target.reset();
-    pendingImage=null;
-    $("preview").style.display="none";
-    updateSelectedCount();
-    await loadEntries();
-    alert("บันทึกสำเร็จ สมาชิกที่เลือกได้รับคนละ 1 คะแนนแล้ว");
-  }catch(err){
-    console.error(err);
-    alert("บันทึกไม่สำเร็จ: "+err.message+
-      "\nโปรดตรวจสอบ SQL และ Storage policies ใน Supabase");
-  }finally{
-    btn.disabled=false;
-    btn.textContent="บันทึกหลักฐานและคะแนน";
+    const url = new URL(String(value || ""));
+    return url.protocol === "https:" ? url.href : "";
+  }catch{
+    return "";
   }
-});
-
-$("entryForm").addEventListener("reset",()=>{
-  setTimeout(()=>{
-    $("preview").style.display="none";
-    pendingImage=null;
-    updateSelectedCount();
-  },0);
-});
-
-function updateSelectedCount(){
-  const count=document.querySelectorAll(
-    'input[name="friendName"]:checked'
-  ).length;
-  $("selectedCount").textContent=
-    `เลือกแล้ว ${count} คน • คนละ 1 คะแนน • รวมเพิ่ม ${count} คะแนนรายบุคคล`;
 }
 
 function render(){
-  const totals={};
-  members.forEach(([n])=>totals[n]=0);
+  const totals = Object.fromEntries(
+    MEMBERS.map(member => [member.name, 0])
+  );
 
-  entries.forEach(e=>{
-    const recipients=new Set([
-      e.member,
-      ...String(e.friends||"").split(",").map(n=>n.trim()).filter(Boolean)
-    ]);
-    const points=Number(e.points??1);
-    recipients.forEach(name=>{
-      totals[name]=(totals[name]||0)+points;
+  entries.forEach(entry => {
+    const recipients = recipientsFor(entry);
+
+    /*
+      รายการใหม่มี points = 1 เสมอ
+      รายการเก่าจะใช้คะแนนเดิมที่บันทึกไว้
+    */
+    const points = Number(entry.points ?? 1);
+
+    recipients.forEach(name => {
+      totals[name] = (totals[name] || 0) + points;
     });
   });
 
-  $("totalEntries").textContent=entries.length.toLocaleString("th-TH");
-  $("activeMembers").textContent=
-    Object.values(totals).filter(v=>v>0).length.toLocaleString("th-TH");
+  $("totalEntries").textContent =
+    entries.length.toLocaleString("th-TH");
 
-  const q=$("search").value.trim().toLowerCase();
-  const ranked=members.map(([name,role])=>({
-    name,role,points:totals[name]||0
-  })).filter(m=>m.name.toLowerCase().includes(q))
-    .sort((a,b)=>b.points-a.points||a.name.localeCompare(b.name));
+  $("activeMembers").textContent =
+    Object.values(totals).filter(points => points > 0)
+      .length.toLocaleString("th-TH");
 
-  let lastPoints=null,rank=0;
-  $("leaderboard").innerHTML=ranked.map((m,i)=>{
-    if(lastPoints===null||m.points!==lastPoints)rank=i+1;
-    lastPoints=m.points;
-    const medal=rank===1?"🥇":rank===2?"🥈":rank===3?"🥉":rank;
-    return `<div class="person">
-      <div class="rank">${medal}</div>
-      <div>
-        <div class="personname">${esc(m.name)}</div>
-        <div class="role">${esc(m.role)}</div>
-      </div>
-      <div class="points">${m.points.toLocaleString("th-TH")} คะแนน</div>
-    </div>`;
-  }).join("")||'<div class="empty">ไม่พบสมาชิก</div>';
-
-  const eq=$("entrySearch").value.trim().toLowerCase();
-  const shown=entries.filter(e=>
-    [e.member,e.note,e.friends].join(" ").toLowerCase().includes(eq)
-  );
-
-  $("submissions").innerHTML=shown.map(e=>{
-    const url=String(e.image_url||"");
-    const safeUrl=/^https:\/\//i.test(url)?url:"";
-    const recipients=[...new Set([
-      e.member,
-      ...String(e.friends||"").split(",").map(n=>n.trim()).filter(Boolean)
-    ])];
-
-    return `<article class="entry">
-      <div class="entrytop">
-        <div>
-          <strong>สมาชิกที่ได้รับคะแนน</strong>
-          <div><small>${new Date(e.created_at).toLocaleString("th-TH",{
-            dateStyle:"medium",timeStyle:"short"
-          })} • ${recipients.length} คน</small></div>
-          <p>${recipients.map(esc).join(", ")}</p>
-          ${e.note?`<p>${esc(e.note)}</p>`:""}
-          ${safeUrl
-            ?`<a class="proof-link" href="${esc(safeUrl)}" target="_blank" rel="noopener noreferrer">🔗 เปิดรูปหลักฐาน</a><span class="proof-url">${esc(safeUrl)}</span>`
-            :'<p class="hint">ไม่พบลิงก์รูปหลักฐาน</p>'}
-        </div>
-        <div class="points">+1 คะแนน/คน</div>
-      </div>
-    </article>`;
-  }).join("")||'<div class="empty">ยังไม่มีหลักฐานที่ส่งเข้ามา</div>';
+  renderLeaderboard(totals);
+  renderHistory();
 }
 
-$("search").addEventListener("input",render);
-$("entrySearch").addEventListener("input",render);
+function renderLeaderboard(totals){
+  const query = $("rankSearch").value.trim().toLowerCase();
 
-$("exportBtn").onclick=()=>{
-  const rows=[[
-    "สมาชิกที่ได้รับคะแนน","คะแนนต่อคน","จำนวนคนเล่น",
-    "หมายเหตุ","วันที่","ลิงก์รูปหลักฐาน"
+  const ranked = MEMBERS.map(member => ({
+    ...member,
+    points: totals[member.name] || 0
+  }))
+  .filter(member => member.name.toLowerCase().includes(query))
+  .sort((a,b) => b.points - a.points || a.name.localeCompare(b.name));
+
+  let previousPoints = null;
+  let currentRank = 0;
+
+  $("leaderboard").innerHTML = ranked.map((member,index) => {
+    if(previousPoints === null || member.points !== previousPoints){
+      currentRank = index + 1;
+    }
+    previousPoints = member.points;
+
+    const marker = currentRank === 1 ? "🥇"
+      : currentRank === 2 ? "🥈"
+      : currentRank === 3 ? "🥉"
+      : String(currentRank);
+
+    return `
+      <div class="rankrow">
+        <div class="medal">${marker}</div>
+        <div>
+          <div class="member-name">${escapeHtml(member.name)}</div>
+          <div class="member-role">${escapeHtml(member.role)}</div>
+        </div>
+        <div class="points">${member.points.toLocaleString("th-TH")} คะแนน</div>
+      </div>`;
+  }).join("") || '<div class="empty">ไม่พบสมาชิก</div>';
+}
+
+function renderHistory(){
+  const query = $("historySearch").value.trim().toLowerCase();
+
+  const filtered = entries.filter(entry => {
+    const text = [
+      entry.member, entry.friends, entry.note, entry.image_url
+    ].join(" ").toLowerCase();
+
+    return text.includes(query);
+  });
+
+  $("history").innerHTML = filtered.map(entry => {
+    const names = recipientsFor(entry);
+    const url = validHttpsUrl(entry.image_url);
+
+    const link = url
+      ? `<a class="proof" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">🔗 เปิดรูปหลักฐาน</a>`
+      : `<div class="hint">ไม่มีลิงก์หลักฐานที่ถูกต้อง</div>`;
+
+    return `
+      <article class="card">
+        <div class="cardtop">
+          <div>
+            <strong>👥 สมาชิกที่ได้รับคะแนน</strong>
+            <p>${names.map(escapeHtml).join(", ") || "ไม่ระบุชื่อ"}</p>
+            <small>${escapeHtml(formatDate(entry.created_at))} • ${names.length} คน</small>
+          </div>
+          <div class="points">+1 / คน</div>
+        </div>
+        ${entry.note
+          ? `<p>${escapeHtml(entry.note)}</p>`
+          : ""}
+        ${link}
+      </article>`;
+  }).join("") || '<div class="empty">ยังไม่มีหลักฐานที่ส่งเข้ามา</div>';
+}
+
+$("rankSearch").addEventListener("input", render);
+$("historySearch").addEventListener("input", render);
+
+$("csvBtn").addEventListener("click", () => {
+  const rows = [[
+    "สมาชิกที่ได้รับคะแนน",
+    "คะแนนต่อคน",
+    "จำนวนสมาชิก",
+    "หมายเหตุ",
+    "วันที่",
+    "ลิงก์หลักฐาน"
   ]];
 
-  entries.forEach(e=>rows.push([
-    [e.member,...String(e.friends||"").split(",").map(n=>n.trim()).filter(Boolean)].join("; "),
-    1,e.players,e.note,e.created_at,e.image_url
-  ]));
+  entries.forEach(entry => {
+    rows.push([
+      recipientsFor(entry).join("; "),
+      entry.points ?? 1,
+      entry.players ?? recipientsFor(entry).length,
+      entry.note || "",
+      entry.created_at || "",
+      entry.image_url || ""
+    ]);
+  });
 
-  const csv="\ufeff"+rows.map(r=>
-    r.map(v=>'"'+String(v??"").replace(/"/g,'""')+'"').join(",")
+  const csv = "\ufeff" + rows.map(row =>
+    row.map(value =>
+      '"' + String(value ?? "").replace(/"/g, '""') + '"'
+    ).join(",")
   ).join("\r\n");
 
-  const a=document.createElement("a");
-  const objectUrl=URL.createObjectURL(
-    new Blob([csv],{type:"text/csv;charset=utf-8;"})
+  const objectUrl = URL.createObjectURL(
+    new Blob([csv], {type:"text/csv;charset=utf-8;"})
   );
-  a.href=objectUrl;
-  a.download="40fps-kind-of-loop-scores.csv";
-  a.click();
-  setTimeout(()=>URL.revokeObjectURL(objectUrl),1000);
-};
 
+  const link = document.createElement("a");
+  link.href = objectUrl;
+  link.download = "40FPS-Kind-of-Loop.csv";
+  link.click();
+
+  setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+});
+
+buildMemberPicker();
 render();
+
+const savedConfig = getConfig();
+
+if(savedConfig){
+  $("projectUrl").value = savedConfig.url || "";
+  $("publicKey").value = savedConfig.key || "";
+  connectDatabase(savedConfig.url, savedConfig.key, false);
+}else{
+  $("settingsBox").classList.add("show");
+  setStatus("กรุณาตั้งค่า Supabase เพื่อเริ่มใช้งาน", "off");
+}
 </script>
 </body>
 </html>
