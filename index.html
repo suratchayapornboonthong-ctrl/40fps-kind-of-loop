@@ -131,12 +131,20 @@ textarea{resize:vertical}
 
 <div class="grid">
   <section class="panel">
-    <h2>🔗 ส่งลิงก์หลักฐาน</h2>
+    <h2>🖼️ ส่งรูปหลักฐาน</h2>
     <form id="entryForm">
-      <label class="field" for="proofUrl">วางลิงก์รูปหลักฐาน *</label>
-      <input id="proofUrl" type="url" placeholder="วางลิงก์รูปที่นี่..." required>
+      <label class="field">วางรูปหลักฐานหรือเลือกไฟล์ *</label>
+      <div id="pasteZone" tabindex="0" role="button" aria-label="พื้นที่วางรูปหลักฐาน"
+        style="padding:24px;text-align:center;border:2px dashed #8b7cff;border-radius:12px;background:#0c1427;cursor:pointer;line-height:1.8">
+        📋 คลิกบริเวณนี้ แล้วกด Ctrl + V เพื่อวางรูปแคปหน้าจอ
+        <br><span class="hint">หรือเลือกไฟล์รูปจากคอมพิวเตอร์</span>
+      </div>
+      <input id="proofFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif" style="display:block;margin-top:10px;width:100%">
+      <div id="proofPreview" style="margin-top:10px"></div>
+      <label class="field" for="proofUrl">หรือวางลิงก์รูป HTTPS</label>
+      <input id="proofUrl" type="url" placeholder="https://...">
       <div class="actions"><button type="button" class="secondary" id="testLinkBtn">↗ เปิดลิงก์</button></div>
-      <p class="hint">ใช้ลิงก์รูปที่สมาชิกสามารถเปิดดูได้</p>
+      <p class="hint">รองรับ PNG, JPG, WEBP และ GIF ขนาดไม่เกิน 5 MB หากเลือกไฟล์ ระบบจะอัปโหลดรูปออนไลน์ให้อัตโนมัติ</p>
       <label class="field">เลือกสมาชิกที่ร่วมเล่น *</label>
       <div class="picker" id="memberPicker"></div>
       <p class="hint" id="selectedCount">เลือกแล้ว 0 คน • คนละ 1 คะแนน</p>
@@ -180,6 +188,41 @@ let entries = [];
 let members = FALLBACK_MEMBERS.map(m=>({...m,active:true,aliases:[],id:null}));
 let adminUser = null;
 let isAdmin = false;
+let pastedProofFile = null;
+let proofPreviewUrl = null;
+
+function setProofFile(file){
+  if(!file)return;
+  const allowed=["image/png","image/jpeg","image/webp","image/gif"];
+  if(!allowed.includes(file.type)){alert("รองรับเฉพาะไฟล์ PNG, JPG, WEBP และ GIF");return;}
+  if(file.size>5*1024*1024){alert("รูปมีขนาดเกิน 5 MB กรุณาเลือกรูปที่เล็กกว่านี้");return;}
+  pastedProofFile=file;
+  $("proofUrl").value="";
+  if(proofPreviewUrl)URL.revokeObjectURL(proofPreviewUrl);
+  proofPreviewUrl=URL.createObjectURL(file);
+  $("proofPreview").replaceChildren();
+  const img=document.createElement("img");
+  img.src=proofPreviewUrl;img.alt="ตัวอย่างรูปหลักฐาน";
+  img.style.cssText="display:block;max-width:100%;max-height:320px;border-radius:12px";
+  const caption=document.createElement("p");caption.className="hint";
+  caption.textContent=`เลือกรูปแล้ว: ${file.name||"รูปจากคลิปบอร์ด"} (${(file.size/1024).toFixed(0)} KB)`;
+  $("proofPreview").append(img,caption);
+}
+function clearProofSelection(){
+  pastedProofFile=null;$("proofFile").value="";$("proofPreview").replaceChildren();
+  if(proofPreviewUrl)URL.revokeObjectURL(proofPreviewUrl);
+  proofPreviewUrl=null;
+}
+async function uploadProofImage(file){
+  const extension={"image/png":"png","image/jpeg":"jpg","image/webp":"webp","image/gif":"gif"}[file.type];
+  if(!extension)throw new Error("ชนิดไฟล์รูปไม่รองรับ");
+  const path=`${Date.now()}-${crypto.randomUUID()}.${extension}`;
+  const {data,error}=await db.storage.from("kind-of-loop-proofs").upload(path,file,{
+    cacheControl:"3600",upsert:false,contentType:file.type
+  });
+  if(error)throw error;
+  return db.storage.from("kind-of-loop-proofs").getPublicUrl(data.path).data.publicUrl;
+}
 
 function escapeHtml(value){
   return String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -292,7 +335,7 @@ function render(){
   const filtered=entries.filter(e=>[e.member,e.friends,e.note,e.image_url].join(" ").toLowerCase().includes(hq));
   $("history").innerHTML=filtered.map(e=>{
     const names=recipients(e);const proof=httpsUrl(e.image_url);
-    return `<article class="card"><strong>👥 ${names.map(escapeHtml).join(", ")}</strong><p>${escapeHtml(dateText(e.created_at))} • ${names.length} คน • คนละ 1 คะแนน</p>${e.note?`<p>${escapeHtml(e.note)}</p>`:""}${proof?`<a class="proof" href="${escapeHtml(proof)}" target="_blank" rel="noopener noreferrer">🔗 เปิดลิงก์หลักฐาน</a>`:""}</article>`;
+    return `<article class="card"><strong>👥 ${names.map(escapeHtml).join(", ")}</strong><p>${escapeHtml(dateText(e.created_at))} • ${names.length} คน • คนละ 1 คะแนน</p>${e.note?`<p>${escapeHtml(e.note)}</p>`:""}${proof?`<div><a class="proof" href="${escapeHtml(proof)}" target="_blank" rel="noopener noreferrer">🔗 เปิดรูปหลักฐาน</a><br><a href="${escapeHtml(proof)}" target="_blank" rel="noopener noreferrer"><img src="${escapeHtml(proof)}" alt="รูปหลักฐาน" loading="lazy" style="display:block;max-width:100%;max-height:260px;margin-top:10px;border-radius:10px" onerror="this.style.display='none'"></a></div>`:""}</article>`;
   }).join("")||'<div class="empty">ยังไม่มีประวัติหลักฐาน</div>';
 }
 
@@ -423,24 +466,36 @@ $("adminMembers").addEventListener("click",async event=>{
   }else if(toggle){await toggleMember(toggle.dataset.toggleMember);}
 });
 
+$("pasteZone").addEventListener("click",()=>$("pasteZone").focus());
+$("proofFile").addEventListener("change",event=>setProofFile(event.target.files?.[0]));
+document.addEventListener("paste",event=>{
+  const items=[...(event.clipboardData?.items||[])];
+  const imageItem=items.find(item=>item.type.startsWith("image/"));
+  if(!imageItem)return;
+  const file=imageItem.getAsFile();
+  if(file){event.preventDefault();setProofFile(file);}
+});
 $("testLinkBtn").addEventListener("click",()=>{
   const url=httpsUrl($("proofUrl").value);if(!url){alert("กรุณาวางลิงก์ HTTPS ที่ถูกต้อง");return;}
   window.open(url,"_blank","noopener,noreferrer");
 });
-$("entryForm").addEventListener("reset",()=>setTimeout(updateSelected,0));
+$("entryForm").addEventListener("reset",()=>setTimeout(()=>{clearProofSelection();updateSelected();},0));
 $("entryForm").addEventListener("submit",async event=>{
   event.preventDefault();
   if(!db){alert("กรุณาตั้งค่า Supabase และเชื่อมต่อก่อน");$("settingsBox").classList.add("show");return;}
   const names=selectedNames();if(!names.length){alert("กรุณาเลือกสมาชิกที่ร่วมเล่น");return;}
-  const proof=httpsUrl($("proofUrl").value);if(!proof){alert("กรุณาวางลิงก์ HTTPS ที่ถูกต้อง");return;}
-  const button=$("submitBtn");button.disabled=true;button.textContent="กำลังบันทึก...";
+  let proof=httpsUrl($("proofUrl").value);
+  if(!pastedProofFile&&!proof){alert("กรุณาวางรูป เลือกไฟล์รูป หรือวางลิงก์ HTTPS");return;}
+  const button=$("submitBtn");button.disabled=true;
   try{
+    if(pastedProofFile){button.textContent="กำลังอัปโหลดรูป...";proof=await uploadProofImage(pastedProofFile);}
+    button.textContent="กำลังบันทึกคะแนน...";
     const {error}=await db.from("kind_of_loop_entries").insert({
       member:names[0],points:1,players:names.length,friends:names.slice(1).join(", "),
       note:$("note").value.trim(),image_url:proof
     });
     if(error)throw error;
-    $("entryForm").reset();updateSelected();await loadEntries();alert("บันทึกหลักฐานสำเร็จ!");
+    $("entryForm").reset();clearProofSelection();updateSelected();await loadEntries();alert("บันทึกหลักฐานและคะแนนสำเร็จ!");
   }catch(error){alert("บันทึกไม่สำเร็จ: "+error.message);}
   finally{button.disabled=false;button.textContent="บันทึกหลักฐานและคะแนน";}
 });
