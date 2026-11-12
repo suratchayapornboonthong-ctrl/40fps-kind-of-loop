@@ -312,26 +312,52 @@ async function connect(url,key,save=true){
   }finally{$("connectBtn").disabled=false;}
 }
 
+let entriesLoading = false;
 async function loadEntries(){
   if(!db){render();return false;}
   if(entriesLoading)return false;
   entriesLoading=true;
+
   try{
-    const {data,error}=await db.from("kind_of_loop_entries")
-      .select("*").order("created_at",{ascending:false}).limit(1000);
-    if(error)throw error;
-    entries=data||[];
+    const pageSize=500;
+    const allRows=[];
+    let from=0;
+
+    while(true){
+      const {data,error}=await db
+        .from("kind_of_loop_entries")
+        .select("*")
+        .order("created_at",{ascending:false})
+        .range(from,from+pageSize-1);
+
+      if(error)throw error;
+
+      const batch=data||[];
+      allRows.push(...batch);
+
+      if(batch.length<pageSize)break;
+      from+=pageSize;
+    }
+
+    entries=allRows;
     render();
-    setStatus("ออนไลน์ • โหลดคะแนนล่าสุดแล้ว","on");
+
+    setStatus(
+      `ออนไลน์ • โหลดประวัติครบ ${entries.length} รายการ`,
+      "on"
+    );
     return true;
+
   }catch(error){
-    setStatus("บันทึกได้แต่โหลดคะแนนไม่ได้: "+error.message,"off");
-    console.error("Supabase loadEntries:",error);
+    setStatus("โหลดคะแนนไม่สำเร็จ: "+error.message,"off");
+    console.error(error);
     return false;
+
   }finally{
     entriesLoading=false;
   }
 }
+
 
 function recipients(entry){
   const others=String(entry.friends||"").split(",").map(s=>s.trim()).filter(Boolean);
