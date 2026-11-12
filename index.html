@@ -312,7 +312,6 @@ async function connect(url,key,save=true){
   }finally{$("connectBtn").disabled=false;}
 }
 
-let entriesLoading = false;
 async function loadEntries(){
   if(!db){render();return false;}
   if(entriesLoading)return false;
