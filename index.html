@@ -1,604 +1,1096 @@
+
 <!DOCTYPE html>
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#0b1020">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#100d20">
 <title>40FPS | Kind of Loop</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-:root{--bg:#0b1020;--panel:#151d32;--panel2:#1c2943;--line:#2c3a59;--text:#f4f7ff;--muted:#aab7d0;--purple:#8b7cff;--cyan:#58d9e8}
+:root{
+  --bg:#100d20;--panel:#1c1730;--panel2:#28213f;
+  --line:#40345e;--text:#f8f5ff;--muted:#b9aecb;
+  --purple:#9274ee;--gold:#f3c96b;--green:#59d99b;
+  --red:#f17d91;
+}
 *{box-sizing:border-box}
-body{margin:0;background:radial-gradient(ellipse at top right,#292451 0,transparent 40%),var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+body{
+  margin:0;background:
+  radial-gradient(ellipse at top right,#38275d 0,transparent 40%),
+  var(--bg);color:var(--text);
+  font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+}
 button,input,textarea,select{font:inherit}
-button{cursor:pointer;padding:11px 14px;border:0;border-radius:10px;background:var(--purple);color:white;font-weight:800}
+button{
+  cursor:pointer;border:0;border-radius:11px;padding:11px 15px;
+  background:var(--purple);color:white;font-weight:800;
+}
 button.secondary{background:var(--panel2);border:1px solid var(--line)}
+button.gold{background:#a77b2d;color:#fff8e8}
 button.danger{background:#8e3448}
-button:disabled{opacity:.6;cursor:wait}
-.wrap{max-width:1100px;margin:auto;padding:20px 14px 45px}
-.hero,.panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;margin-bottom:16px}
-.hero{background:linear-gradient(135deg,#24264a,#151d32 75%)}
-.kicker{font-size:12px;letter-spacing:2px;color:var(--cyan);font-weight:900}
-h1{font-size:clamp(27px,5vw,42px);margin:8px 0}
+button:disabled{opacity:.55;cursor:wait}
+input,textarea,select{
+  width:100%;padding:12px;background:#100d20;color:var(--text);
+  border:1px solid var(--line);border-radius:10px;outline:none;
+}
+input:focus,textarea:focus,select:focus{border-color:var(--purple)}
+.wrap{max-width:1150px;margin:auto;padding:20px 14px 50px}
+.hero,.panel{
+  background:var(--panel);border:1px solid var(--line);
+  border-radius:18px;padding:20px;margin-bottom:16px;
+}
+.hero{background:linear-gradient(135deg,#382755,#211a37 70%)}
+.kicker{color:var(--gold);font-size:12px;font-weight:900;letter-spacing:2px}
+h1{font-size:clamp(28px,5vw,44px);margin:8px 0}
 h2{font-size:19px;margin:0 0 15px}
+h3{font-size:16px}
 .sub,.hint{color:var(--muted);line-height:1.7}
 .sub{margin:0}
 .hint{font-size:12px}
-.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:18px}
-.stat{background:#0d1427;border:1px solid var(--line);border-radius:12px;padding:13px}
-.stat span{display:block;font-size:12px;color:var(--muted)}
-.stat strong{display:block;font-size:25px;margin-top:4px}
-.status{display:flex;align-items:center;gap:8px;margin-top:14px;font-size:12px;color:var(--muted)}
-.dot{width:9px;height:9px;border-radius:50%;background:#f0bd63}
-.dot.on{background:#69e0a7}.dot.off{background:#ff8797}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:18px}
+.stat{background:#151025;border:1px solid var(--line);padding:14px;border-radius:13px}
+.stat span{display:block;color:var(--muted);font-size:12px}
+.stat strong{display:block;font-size:27px;margin-top:5px;color:var(--gold)}
+.status{display:flex;align-items:center;gap:8px;margin-top:15px;font-size:12px;color:var(--muted)}
+.dot{width:9px;height:9px;border-radius:50%;background:#e6b95d}
+.dot.on{background:var(--green)}.dot.off{background:var(--red)}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .full{grid-column:1/-1}
-label.field{display:block;font-size:14px;margin:14px 0 7px}
-input[type=url],input[type=text],input[type=password],input[type=email],textarea,select{display:block;width:100%;padding:12px;color:var(--text);background:#0c1427;border:1px solid #394968;border-radius:10px;outline:none}
-input:focus,textarea:focus,select:focus{border-color:var(--purple)}
-textarea{resize:vertical}
-.picker{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:10px;background:#0c1427;border:1px solid #394968;border-radius:12px;max-height:290px;overflow:auto}
-.member-choice{display:flex;align-items:center;gap:8px;padding:9px;border:1px solid var(--line);border-radius:9px;background:#111a2e;font-size:13px;overflow-wrap:anywhere}
-.member-choice input{accent-color:var(--purple);flex-shrink:0}
-.member-choice:has(input:checked){background:#292449;border-color:var(--purple)}
-.actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px}
-.notice{padding:12px;margin-top:14px;background:#10182b;border:1px solid var(--line);border-radius:10px;color:var(--muted);font-size:12px;line-height:1.7}
+.field{display:block;font-size:14px;margin:14px 0 7px}
+.picker{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:8px;padding:10px;background:#100d20;
+ border:1px solid var(--line);border-radius:12px;
+ max-height:300px;overflow:auto;
+}
+.member-choice{
+ display:flex;align-items:center;gap:8px;padding:10px;
+ background:#211a37;border:1px solid var(--line);
+ border-radius:9px;font-size:13px;overflow-wrap:anywhere;
+}
+.member-choice input{width:auto;accent-color:var(--purple)}
+.member-choice:has(input:checked){border-color:var(--gold);background:#392b4c}
 .toolbar{display:flex;gap:8px;margin-bottom:12px}
 .toolbar input{min-width:0;flex:1}
 .leaderboard,.history,.admin-members{display:flex;flex-direction:column;gap:9px}
-.rankrow{display:grid;grid-template-columns:40px minmax(0,1fr) auto;align-items:center;gap:10px;padding:11px;background:#10182b;border:1px solid var(--line);border-radius:12px}
-.medal{width:35px;height:35px;display:grid;place-items:center;background:var(--panel2);border-radius:10px;font-weight:900}
+.rankrow{
+ display:grid;grid-template-columns:40px minmax(0,1fr) auto;
+ align-items:center;gap:10px;padding:12px;
+ background:#151025;border:1px solid var(--line);border-radius:12px;
+}
+.medal{
+ width:35px;height:35px;display:grid;place-items:center;
+ background:var(--panel2);border-radius:10px;font-weight:900;
+}
 .member-name{font-weight:800;overflow-wrap:anywhere}
 .member-role{font-size:12px;color:var(--muted);margin-top:3px}
-.points{color:var(--cyan);font-weight:900;white-space:nowrap;text-align:right}
-.card{padding:14px;background:#10182b;border:1px solid var(--line);border-radius:12px;overflow-wrap:anywhere}
+.points{color:var(--gold);font-weight:900;white-space:nowrap}
+.card{padding:14px;background:#151025;border:1px solid var(--line);border-radius:12px;overflow-wrap:anywhere}
 .card p{line-height:1.6}
-.proof{display:inline-block;margin-top:8px;padding:10px 12px;background:#202b47;color:#d4d0ff;border:1px solid #4b5d86;border-radius:9px;text-decoration:none;overflow-wrap:anywhere}
+.proof{
+ display:inline-block;margin-top:8px;padding:9px 12px;
+ background:#30264b;color:#e8dcff;border:1px solid var(--line);
+ border-radius:9px;text-decoration:none;
+}
 .empty{padding:20px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:10px}
-.settings{display:none;margin-top:15px;padding:15px;background:#10182b;border:1px solid var(--line);border-radius:12px}
-.settings.show{display:block}
-.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.admin-tools{display:none;margin-top:14px;padding:15px;background:#10182b;border:1px solid var(--line);border-radius:12px}
-.admin-tools.show{display:block}
-.admin-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:12px;background:#10182b;border:1px solid var(--line);border-radius:10px}
-.admin-row.inactive{opacity:.65}
-.admin-row .name{font-weight:800;overflow-wrap:anywhere}
-.admin-row .meta{font-size:12px;color:var(--muted);margin-top:4px}
+.box{
+ display:none;margin-top:14px;padding:15px;background:#151025;
+ border:1px solid var(--line);border-radius:12px;
+}
+.box.show{display:block}
 .admin-form{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .admin-form .wide{grid-column:1/-1}
-@media(max-width:760px){.grid{grid-template-columns:1fr}.full{grid-column:auto}.wrap{padding:12px 9px 30px}.hero,.panel{padding:15px}.settings-grid,.admin-form{grid-template-columns:1fr}.admin-form .wide{grid-column:auto}.admin-row{grid-template-columns:1fr}.picker{grid-template-columns:1fr}}
+.admin-row{
+ display:grid;grid-template-columns:minmax(0,1fr) auto;
+ gap:10px;align-items:center;padding:12px;
+ background:#151025;border:1px solid var(--line);border-radius:10px;
+}
+.admin-row.inactive{opacity:.6}
+.notice{
+ padding:12px;margin-top:14px;background:#151025;
+ border:1px solid var(--line);border-radius:10px;
+ color:var(--muted);font-size:12px;line-height:1.7;
+}
+@media(max-width:760px){
+ .grid{grid-template-columns:1fr}.full{grid-column:auto}
+ .wrap{padding:12px 9px 30px}
+ .hero,.panel{padding:15px}
+ .admin-form{grid-template-columns:1fr}
+ .admin-form .wide{grid-column:auto}
+ .admin-row{grid-template-columns:1fr}
+ .picker{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
 <div class="wrap">
+
 <header class="hero">
-  <div class="kicker">40FPS GANG • ONLINE SCOREBOARD</div>
-  <h1>🏁 Kind of Loop</h1>
-  <p class="sub">วางลิงก์หลักฐาน เลือกสมาชิก และดูคะแนนรายบุคคล</p>
-  <div class="stats">
-    <div class="stat"><span>หลักฐานทั้งหมด</span><strong id="totalEntries">0</strong></div>
-    <div class="stat"><span>สมาชิกที่มีคะแนน</span><strong id="activeMembers">0</strong></div>
-  </div>
-  <div class="status"><span id="statusDot" class="dot"></span><span id="statusText">รอตั้งค่าฐานข้อมูล</span></div>
+ <div class="kicker">40FPS GANG • ONLINE SCOREBOARD</div>
+ <h1>🏁 40FPS | Kind of Loop</h1>
+ <p class="sub">ระบบส่งหลักฐาน คะแนนสะสม และอันดับสมาชิกแก๊ง</p>
+
+ <div class="stats">
+  <div class="stat"><span>หลักฐานทั้งหมด</span><strong id="totalEntries">0</strong></div>
+  <div class="stat"><span>สมาชิกที่มีคะแนน</span><strong id="activeMembers">0</strong></div>
+ </div>
+
+ <div class="status">
+  <span id="statusDot" class="dot"></span>
+  <span id="statusText">กำลังตรวจสอบระบบ...</span>
+ </div>
+
+ <div class="actions">
+  <button class="secondary" id="settingsToggle">⚙ ตั้งค่า Supabase</button>
+  <button class="secondary" id="adminToggle">🔐 แอดมิน</button>
+  <button class="secondary" id="refreshBtn">↻ โหลดข้อมูล</button>
+ </div>
+
+ <div class="box" id="settingsBox">
+  <strong>เชื่อมต่อฐานข้อมูลเดิม</strong>
+  <p class="hint">ใช้ Project URL และ Publishable key หรือ anon key เท่านั้น ห้ามใช้ Secret หรือ service_role key</p>
+  <label class="field" for="projectUrl">Project URL</label>
+  <input id="projectUrl" type="url" placeholder="https://xxxx.supabase.co">
+  <label class="field" for="publicKey">Publishable / anon key</label>
+  <input id="publicKey" type="password" placeholder="วาง public key">
   <div class="actions">
-    <button type="button" class="secondary" id="settingsToggle">⚙ ตั้งค่า Supabase</button>
-    <button type="button" class="secondary" id="adminToggle">🔐 แอดมิน</button>
-    <button type="button" class="secondary" id="refreshBtn">↻ โหลดข้อมูลใหม่</button>
+   <button id="connectBtn">เชื่อมต่อและบันทึก</button>
+   <button class="secondary" id="clearConfigBtn">ล้างการตั้งค่าในเครื่อง</button>
   </div>
-  <div class="settings" id="settingsBox">
-    <strong>เชื่อมต่อฐานข้อมูลออนไลน์</strong>
-    <p class="hint">ใช้ Project URL และ Publishable key หรือ anon key จาก Supabase ห้ามใช้ Secret หรือ service_role key</p>
-    <label class="field" for="projectUrl">Project URL</label>
-    <input id="projectUrl" type="url" placeholder="https://xxxx.supabase.co">
-    <label class="field" for="publicKey">Publishable / anon key</label>
-    <input id="publicKey" type="password" placeholder="วาง public key">
+ </div>
+
+ <div class="box" id="adminBox">
+  <strong>🔐 ระบบผู้ดูแล</strong>
+  <p class="hint">ใช้บัญชี Supabase Auth ที่ได้รับสิทธิ์ใน kind_of_loop_admins</p>
+  <div id="adminLogin">
+   <label class="field" for="adminEmail">อีเมล</label>
+   <input id="adminEmail" type="email" autocomplete="username">
+   <label class="field" for="adminPassword">รหัสผ่าน</label>
+   <input id="adminPassword" type="password" autocomplete="current-password">
+   <div class="actions"><button id="adminLoginBtn">เข้าสู่ระบบ</button></div>
+  </div>
+
+  <div id="adminDashboard" hidden>
+   <p class="hint" id="adminWelcome"></p>
+   <h3 id="memberFormTitle">เพิ่มสมาชิก</h3>
+   <form id="memberForm">
+    <input type="hidden" id="editMemberId">
+    <label class="field" for="memberName">ชื่อสมาชิก</label>
+    <input id="memberName" type="text" maxlength="100" required>
+    <label class="field" for="memberRole">ตำแหน่ง</label>
+    <select id="memberRole">
+     <option>สมาชิก</option>
+     <option>Co-Leader</option>
+     <option>หัวหน้า</option>
+    </select>
     <div class="actions">
-      <button type="button" id="connectBtn">เชื่อมต่อและบันทึกการตั้งค่า</button>
-      <button type="button" class="secondary" id="clearConfigBtn">ล้างการตั้งค่าในเครื่องนี้</button>
+     <button type="submit" id="saveMemberBtn">บันทึกสมาชิก</button>
+     <button type="button" class="secondary" id="cancelEditBtn" hidden>ยกเลิก</button>
     </div>
+   </form>
+   <div class="actions">
+    <button class="secondary" id="adminRefreshBtn">โหลดรายชื่อ</button>
+    <button class="secondary" id="adminLogoutBtn">ออกจากระบบ</button>
+   </div>
+   <p class="hint">การปิดใช้งานสมาชิกจะไม่ลบคะแนนหรือประวัติเดิม การเปลี่ยนชื่อจะเก็บชื่อเดิมไว้รวมคะแนน</p>
+   <div class="admin-members" id="adminMembers"></div>
   </div>
-  <div class="admin-tools" id="adminBox">
-    <strong>🔐 ระบบผู้ดูแลสมาชิก</strong>
-    <p class="hint">เข้าสู่ระบบด้วยอีเมลและรหัสผ่านของบัญชี Supabase Auth ที่ได้รับสิทธิ์แอดมิน</p>
-    <div id="adminLogin">
-      <label class="field" for="adminEmail">อีเมลแอดมิน</label>
-      <input id="adminEmail" type="email" autocomplete="username" placeholder="อีเมลที่สร้างใน Supabase">
-      <label class="field" for="adminPassword">รหัสผ่าน</label>
-      <input id="adminPassword" type="password" autocomplete="current-password" placeholder="รหัสผ่านบัญชีแอดมิน">
-      <div class="actions"><button type="button" id="adminLoginBtn">เข้าสู่ระบบแอดมิน</button></div>
-    </div>
-    <div id="adminDashboard" hidden>
-      <p class="hint" id="adminWelcome">ยืนยันสิทธิ์แอดมินแล้ว</p>
-      <h3 id="memberFormTitle">เพิ่มสมาชิก</h3>
-      <form id="memberForm">
-        <input type="hidden" id="editMemberId">
-        <div class="admin-form">
-          <div><label class="field" for="memberName">ชื่อสมาชิก</label><input id="memberName" type="text" maxlength="100" required placeholder="ชื่อสมาชิก"></div>
-          <div><label class="field" for="memberRole">ตำแหน่ง</label><select id="memberRole"><option>สมาชิก</option><option>Co-Leader</option><option>หัวหน้า</option></select></div>
-          <div class="wide actions">
-            <button type="submit" id="saveMemberBtn">บันทึกสมาชิก</button>
-            <button type="button" class="secondary" id="cancelEditBtn" hidden>ยกเลิกแก้ไข</button>
-          </div>
-        </div>
-      </form>
-      <div class="actions"><button type="button" class="secondary" id="adminRefreshBtn">↻ โหลดรายชื่อ</button><button type="button" class="secondary" id="adminLogoutBtn">ออกจากระบบแอดมิน</button></div>
-      <p class="hint">การปิดใช้งานสมาชิกจะไม่ลบคะแนนหรือประวัติเดิม หากเปลี่ยนชื่อ ระบบจะเก็บชื่อเก่าไว้เป็นชื่อสำรองเพื่อรวมคะแนนเดิม</p>
-      <div class="admin-members" id="adminMembers"></div>
-    </div>
-    <div class="notice" id="adminMessage" role="status">กรุณาเชื่อมต่อ Supabase ก่อนเข้าสู่ระบบแอดมิน</div>
-  </div>
+  <div class="notice" id="adminMessage">กรุณาเชื่อมต่อ Supabase ก่อน</div>
+ </div>
 </header>
 
 <div class="grid">
-  <section class="panel">
-    <h2>🖼️ ส่งรูปหลักฐาน</h2>
-    <form id="entryForm">
-      <label class="field">วางรูปหลักฐานหรือเลือกไฟล์ *</label>
-      <div id="pasteZone" tabindex="0" role="button" aria-label="พื้นที่วางรูปหลักฐาน"
-        style="padding:24px;text-align:center;border:2px dashed #8b7cff;border-radius:12px;background:#0c1427;cursor:pointer;line-height:1.8">
-        📋 คลิกบริเวณนี้ แล้วกด Ctrl + V เพื่อวางรูปแคปหน้าจอ
-        <br><span class="hint">หรือเลือกไฟล์รูปจากคอมพิวเตอร์</span>
-      </div>
-      <input id="proofFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif" style="display:block;margin-top:10px;width:100%">
-      <div id="proofPreview" style="margin-top:10px"></div>
-      <label class="field" for="proofUrl">หรือวางลิงก์รูป HTTPS</label>
-      <input id="proofUrl" type="url" placeholder="https://...">
-      <div class="actions"><button type="button" class="secondary" id="testLinkBtn">↗ เปิดลิงก์</button></div>
-      <p class="hint">รองรับ PNG, JPG, WEBP และ GIF ขนาดไม่เกิน 5 MB หากเลือกไฟล์ ระบบจะอัปโหลดรูปออนไลน์ให้อัตโนมัติ</p>
-      <label class="field">เลือกสมาชิกที่ร่วมเล่น *</label>
-      <div class="picker" id="memberPicker"></div>
-      <p class="hint" id="selectedCount">เลือกแล้ว 0 คน • คนละ 1 คะแนน</p>
-      <label class="field" for="note">หมายเหตุ (ไม่บังคับ)</label>
-      <textarea id="note" rows="3" placeholder="รายละเอียดเพิ่มเติม"></textarea>
-      <div class="actions"><button type="submit" id="submitBtn">บันทึกหลักฐานและคะแนน</button><button type="reset" class="secondary">ล้างแบบฟอร์ม</button></div>
-    </form>
-    <div class="notice">รายการที่ส่งสำเร็จจะถูกบันทึกออนไลน์ สามารถกลับมาดูประวัติได้ภายหลัง</div>
-  </section>
-  <section class="panel">
-    <h2>🏆 ตารางคะแนนรายบุคคล</h2>
-    <div class="toolbar"><input id="rankSearch" type="text" placeholder="ค้นหาชื่อสมาชิก..."></div>
-    <div class="leaderboard" id="leaderboard"></div>
-  </section>
-  <section class="panel full">
-    <h2>🧾 ประวัติหลักฐาน</h2>
-    <div class="toolbar"><input id="historySearch" type="text" placeholder="ค้นหาชื่อ หมายเหตุ หรือลิงก์..."></div>
-    <div class="history" id="history"></div>
-  </section>
+
+<section class="panel">
+ <h2>🖼️ ส่งหลักฐาน Kind of Loop</h2>
+ <form id="entryForm">
+  <label class="field">รูปหลักฐาน *</label>
+  <div id="pasteZone" tabindex="0" role="button"
+   style="padding:22px;text-align:center;border:2px dashed var(--purple);border-radius:12px;background:#100d20;cursor:pointer;line-height:1.8">
+   📋 คลิกบริเวณนี้ แล้วกด Ctrl + V เพื่อวางรูป
+   <br><span class="hint">หรือเลือกไฟล์จากคอมพิวเตอร์</span>
+  </div>
+  <input id="proofFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif" style="margin-top:10px">
+  <div id="proofPreview" style="margin-top:10px"></div>
+
+  <label class="field" for="proofUrl">หรือวางลิงก์รูป HTTPS</label>
+  <input id="proofUrl" type="url" placeholder="https://...">
+  <div class="actions"><button type="button" class="secondary" id="testLinkBtn">↗ ทดสอบเปิดลิงก์</button></div>
+  <p class="hint">ไฟล์รูปต้องไม่เกิน 5 MB หากเลือกไฟล์จะอัปโหลดไปยัง Storage เดิม</p>
+
+  <label class="field">เลือกสมาชิกที่ร่วมเล่น *</label>
+  <div class="picker" id="memberPicker"></div>
+  <p class="hint" id="selectedCount">เลือกแล้ว 0 คน • คนละ 1 คะแนน</p>
+
+  <label class="field" for="note">หมายเหตุ (ไม่บังคับ)</label>
+  <textarea id="note" rows="3" placeholder="รายละเอียดเพิ่มเติม"></textarea>
+
+  <div class="actions">
+   <button type="submit" id="submitBtn">บันทึกหลักฐานและคะแนน</button>
+   <button type="reset" class="secondary">ล้างแบบฟอร์ม</button>
+  </div>
+ </form>
+ <div class="notice">เมื่อบันทึกสำเร็จ สมาชิกทุกคนที่เลือกจะได้รับคนละ 1 คะแนน</div>
+</section>
+
+<section class="panel">
+ <h2>🏆 ตารางคะแนนรายบุคคล</h2>
+ <div class="toolbar"><input id="rankSearch" type="text" placeholder="ค้นหาสมาชิก..."></div>
+ <div class="leaderboard" id="leaderboard"></div>
+</section>
+
+<section class="panel full">
+ <h2>🧾 ประวัติหลักฐาน</h2>
+ <div class="toolbar"><input id="historySearch" type="text" placeholder="ค้นหาชื่อ หมายเหตุ หรือลิงก์..."></div>
+ <div class="history" id="history"></div>
+</section>
+
 </div>
 </div>
 
 <script>
 "use strict";
 
+const DEFAULT_URL = "https://npvbqslldumgqavhtohi.supabase.co";
+
 const FALLBACK_MEMBERS = [
-  {name:"Skyler Florence",role:"หัวหน้า"},{name:"June awa",role:"Co-Leader"},{name:"Salapao Eiei",role:"Co-Leader"},
-  {name:"Farfare Sumerise",role:"สมาชิก"},{name:"KENJI KEN",role:"สมาชิก"},{name:"Peepee Ozxzia",role:"สมาชิก"},
-  {name:"So Derric",role:"สมาชิก"},{name:"Lek Luvu",role:"สมาชิก"},{name:"Warin Duckly",role:"สมาชิก"},
-  {name:"candy rolie",role:"สมาชิก"},{name:"Daniel Rabamtep",role:"สมาชิก"},{name:"Attrix Stanthekid",role:"สมาชิก"},
-  {name:"Zayra Justyouknow",role:"สมาชิก"},{name:"SININE SERK",role:"สมาชิก"},{name:"Nongyu Skibidi",role:"สมาชิก"},
-  {name:"Juxs Diamondstyle",role:"สมาชิก"},{name:"Pond Eiei",role:"สมาชิก"},{name:"Nox Fein",role:"สมาชิก"},
-  {name:"Arm Nelly",role:"สมาชิก"},{name:"Harper Steph",role:"สมาชิก"},{name:"Oreo Glenxlough",role:"สมาชิก"},
-  {name:"Smokey Fernandes",role:"สมาชิก"},{name:"Taco Chatjennailenrao",role:"สมาชิก"},{name:"Josave Overlove",role:"สมาชิก"},
-  {name:"Somchay Mirror",role:"สมาชิก"},{name:"FIEFY ECO",role:"สมาชิก"},{name:"Sky Nook",role:"สมาชิก"},{name:"Shark Stepdrip",role:"สมาชิก"}
+ {name:"Skyler Florence",role:"หัวหน้า"},
+ {name:"June awa",role:"Co-Leader"},
+ {name:"Salapao Eiei",role:"Co-Leader"},
+ {name:"Farfare Sumerise",role:"สมาชิก"},
+ {name:"KENJI KEN",role:"สมาชิก"},
+ {name:"Peepee Ozxzia",role:"สมาชิก"},
+ {name:"So Derric",role:"สมาชิก"},
+ {name:"Lek Luvu",role:"สมาชิก"},
+ {name:"Warin Duckly",role:"สมาชิก"},
+ {name:"candy rolie",role:"สมาชิก"},
+ {name:"Daniel Rabamtep",role:"สมาชิก"},
+ {name:"Attrix Stanthekid",role:"สมาชิก"},
+ {name:"Zayra Justyouknow",role:"สมาชิก"},
+ {name:"SININE SERK",role:"สมาชิก"},
+ {name:"Nongyu Skibidi",role:"สมาชิก"},
+ {name:"Juxs Diamondstyle",role:"สมาชิก"},
+ {name:"Pond Eiei",role:"สมาชิก"},
+ {name:"Nox Fein",role:"สมาชิก"},
+ {name:"Arm Nelly",role:"สมาชิก"},
+ {name:"Harper Steph",role:"สมาชิก"}
 ];
 
 const $ = id => document.getElementById(id);
+const CONFIG_KEY = "40fps-kind-loop-config";
+
 let db = null;
 let entries = [];
-let members = FALLBACK_MEMBERS.map(m=>({...m,active:true,aliases:[],id:null}));
+let members = FALLBACK_MEMBERS.map(m=>({...m,id:null,active:true,aliases:[]}));
 let adminUser = null;
 let isAdmin = false;
-let pastedProofFile = null;
-let proofPreviewUrl = null;
+let proofFile = null;
+let previewUrl = null;
 let entriesLoading = false;
-
-function setProofFile(file){
-  if(!file)return;
-  const allowed=["image/png","image/jpeg","image/webp","image/gif"];
-  if(!allowed.includes(file.type)){alert("รองรับเฉพาะไฟล์ PNG, JPG, WEBP และ GIF");return;}
-  if(file.size>5*1024*1024){alert("รูปมีขนาดเกิน 5 MB กรุณาเลือกรูปที่เล็กกว่านี้");return;}
-  pastedProofFile=file;
-  $("proofUrl").value="";
-  if(proofPreviewUrl)URL.revokeObjectURL(proofPreviewUrl);
-  proofPreviewUrl=URL.createObjectURL(file);
-  $("proofPreview").replaceChildren();
-  const img=document.createElement("img");
-  img.src=proofPreviewUrl;img.alt="ตัวอย่างรูปหลักฐาน";
-  img.style.cssText="display:block;max-width:100%;max-height:320px;border-radius:12px";
-  const caption=document.createElement("p");caption.className="hint";
-  caption.textContent=`เลือกรูปแล้ว: ${file.name||"รูปจากคลิปบอร์ด"} (${(file.size/1024).toFixed(0)} KB)`;
-  $("proofPreview").append(img,caption);
-}
-function clearProofSelection(){
-  pastedProofFile=null;$("proofFile").value="";$("proofPreview").replaceChildren();
-  if(proofPreviewUrl)URL.revokeObjectURL(proofPreviewUrl);
-  proofPreviewUrl=null;
-}
-async function uploadProofImage(file){
-  const extension={"image/png":"png","image/jpeg":"jpg","image/webp":"webp","image/gif":"gif"}[file.type];
-  if(!extension)throw new Error("ชนิดไฟล์รูปไม่รองรับ");
-  const path=`${Date.now()}-${crypto.randomUUID()}.${extension}`;
-  const {data,error}=await db.storage.from("kind-of-loop-proofs").upload(path,file,{
-    cacheControl:"3600",upsert:false,contentType:file.type
-  });
-  if(error)throw error;
-  return db.storage.from("kind-of-loop-proofs").getPublicUrl(data.path).data.publicUrl;
-}
+let realtimeChannel = null;
+let pollTimer = null;
 
 function escapeHtml(value){
-  return String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+ return String(value ?? "").replace(/[&<>"']/g,c=>({
+  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+ }[c]));
 }
-function httpsUrl(value){
-  try{const u = new URL(value.trim());return u.protocol === "https:" ? u.href : "";}catch{return "";}
+
+function validHttps(value){
+ try{
+  const u = new URL(String(value).trim());
+  return u.protocol === "https:" ? u.href : "";
+ }catch{return "";}
 }
-function setStatus(text,state){$("statusText").textContent=text;$("statusDot").className="dot "+state;}
-function setAdminMessage(text,isError=false){$("adminMessage").textContent=text;$("adminMessage").style.color=isError?"#ff8797":"var(--muted)";}
-function getConfig(){try{return JSON.parse(localStorage.getItem("40fps-kind-loop-config")||"null");}catch{return null;}}
-function selectedNames(){return [...document.querySelectorAll('input[name="member"]:checked')].map(el=>el.value);}
-function updateSelected(){$("selectedCount").textContent=`เลือกแล้ว ${selectedNames().length} คน • คนละ 1 คะแนน`;}
+
+function setStatus(text,state=""){
+ $("statusText").textContent=text;
+ $("statusDot").className="dot "+state;
+}
+
+function adminMessage(text,error=false){
+ $("adminMessage").textContent=text;
+ $("adminMessage").style.color=error?"var(--red)":"var(--muted)";
+}
+
+function getSavedConfig(){
+ try{return JSON.parse(localStorage.getItem(CONFIG_KEY)||"null");}
+ catch{return null;}
+}
+
+function selectedNames(){
+ return [...document.querySelectorAll('input[name="member"]:checked')].map(x=>x.value);
+}
+
+function updateSelected(){
+ $("selectedCount").textContent=`เลือกแล้ว ${selectedNames().length} คน • คนละ 1 คะแนน`;
+}
 
 function buildMembers(){
-  const picker=$("memberPicker");
-  picker.replaceChildren();
-  members.filter(m=>m.active!==false).forEach(member=>{
-    const label=document.createElement("label");label.className="member-choice";
-    const checkbox=document.createElement("input");checkbox.type="checkbox";checkbox.name="member";checkbox.value=member.name;
-    checkbox.addEventListener("change",updateSelected);
-    const span=document.createElement("span");span.textContent=member.name;
-    label.append(checkbox,span);picker.appendChild(label);
-  });
-  updateSelected();
+ const picker=$("memberPicker");
+ picker.replaceChildren();
+
+ members.filter(m=>m.active!==false).forEach(member=>{
+  const label=document.createElement("label");
+  label.className="member-choice";
+
+  const checkbox=document.createElement("input");
+  checkbox.type="checkbox";
+  checkbox.name="member";
+  checkbox.value=member.name;
+  checkbox.addEventListener("change",updateSelected);
+
+  const span=document.createElement("span");
+  span.textContent=member.name;
+
+  label.append(checkbox,span);
+  picker.append(label);
+ });
+
+ updateSelected();
 }
-
-async function loadMembers(){
-  if(!db)return;
-  const {data,error}=await db.from("kind_of_loop_members").select("id,name,role,active,aliases,created_at").order("name",{ascending:true});
-  if(error)throw error;
-  members=(data||[]).map(m=>({...m,active:m.active!==false,aliases:Array.isArray(m.aliases)?m.aliases:[]}));
-  buildMembers();
-  render();
-  if(isAdmin)renderAdminMembers();
-}
-
-
-let entriesChannel = null;
-let entriesPollTimer = null;
-
-function stopLiveUpdates(){
-  if(entriesChannel && db) db.removeChannel(entriesChannel).catch(()=>{});
-  entriesChannel=null;
-  if(entriesPollTimer){clearInterval(entriesPollTimer);entriesPollTimer=null;}
-}
-
-function startLiveUpdates(){
-  if(!db)return;
-  stopLiveUpdates();
-  entriesChannel=db.channel("40fps-kind-of-loop-live")
-    .on("postgres_changes",
-      {event:"*",schema:"public",table:"kind_of_loop_entries"},
-      ()=>loadEntries()
-    )
-    .subscribe((status)=>{
-      if(status==="SUBSCRIBED")setStatus("ออนไลน์ • รับคะแนนอัตโนมัติแล้ว","on");
-      else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT")
-        setStatus("Realtime ขัดข้อง • ใช้ระบบโหลดสำรอง","off");
-    });
-  entriesPollTimer=setInterval(()=>{
-    if(db && document.visibilityState==="visible")loadEntries();
-  },30000);
-}
-
-async function connect(url,key,save=true){
-  try{
-    if(!window.supabase)throw new Error("โหลด Supabase ไม่สำเร็จ");
-    const parsed=new URL(url.trim());
-    if(parsed.protocol!=="https:")throw new Error("Project URL ไม่ถูกต้อง");
-    $("connectBtn").disabled=true;setStatus("กำลังเชื่อมต่อฐานข้อมูล...","");
-    const client=window.supabase.createClient(parsed.origin,key.trim());
-    const {error}=await client.from("kind_of_loop_entries").select("id").limit(1);
-    if(error)throw error;
-    db=client;
-    if(save)localStorage.setItem("40fps-kind-loop-config",JSON.stringify({url:parsed.origin,key:key.trim()}));
-    $("settingsBox").classList.remove("show");
-    setStatus("เชื่อมต่อฐานข้อมูลสำเร็จ","on");
-    await loadEntries();
-    try{await loadMembers();}catch(memberError){
-      setStatus("เชื่อมต่อคะแนนได้ แต่โหลดรายชื่อจากตารางสมาชิกไม่สำเร็จ","off");
-      console.error(memberError);
-      setAdminMessage("โหลดตาราง kind_of_loop_members ไม่สำเร็จ: "+memberError.message,true);
-    }
-    await restoreAdminSession();\n    startLiveUpdates();
-  }catch(error){
-    db=null;setStatus("เชื่อมต่อไม่สำเร็จ: "+error.message,"off");
-  }finally{$("connectBtn").disabled=false;}
-}
-
-async function loadEntries(){
-  if(!db){render();return false;}
-  if(entriesLoading)return false;
-  entriesLoading=true;
-
-  try{
-    const pageSize=500;
-    const allRows=[];
-    let from=0;
-
-    while(true){
-      const {data,error}=await db
-        .from("kind_of_loop_entries")
-        .select("*")
-        .order("created_at",{ascending:false})
-        .range(from,from+pageSize-1);
-
-      if(error)throw error;
-
-      const batch=data||[];
-      allRows.push(...batch);
-
-      if(batch.length<pageSize)break;
-      from+=pageSize;
-    }
-
-    entries=allRows;
-    render();
-
-    setStatus(
-      `ออนไลน์ • โหลดประวัติครบ ${entries.length} รายการ`,
-      "on"
-    );
-    return true;
-
-  }catch(error){
-    setStatus("โหลดคะแนนไม่สำเร็จ: "+error.message,"off");
-    console.error(error);
-    return false;
-
-  }finally{
-    entriesLoading=false;
-  }
-}
-
 
 function recipients(entry){
-  const others=String(entry.friends||"").split(",").map(s=>s.trim()).filter(Boolean);
-  return [...new Set([entry.member,...others].filter(Boolean))];
+ const others=String(entry.friends||"")
+  .split(",").map(s=>s.trim()).filter(Boolean);
+ return [...new Set([entry.member,...others].filter(Boolean))];
 }
-function canonicalMemberName(historicalName){
-  const key=String(historicalName||"").trim().toLocaleLowerCase();
-  const found=members.find(m=>String(m.name).trim().toLocaleLowerCase()===key ||
-    (m.aliases||[]).some(a=>String(a).trim().toLocaleLowerCase()===key));
-  return found ? found.name : String(historicalName||"").trim();
+
+function canonicalName(oldName){
+ const key=String(oldName||"").trim().toLowerCase();
+ const found=members.find(m=>
+  String(m.name).trim().toLowerCase()===key ||
+  (m.aliases||[]).some(a=>String(a).trim().toLowerCase()===key)
+ );
+ return found?found.name:String(oldName||"").trim();
 }
+
 function dateText(value){
-  if(!value)return "ไม่ทราบวันที่";
-  const d=new Date(value);
-  return Number.isNaN(d.getTime())?"ไม่ทราบวันที่":d.toLocaleString("th-TH",{dateStyle:"medium",timeStyle:"short"});
+ if(!value)return "ไม่ทราบวันที่";
+ const d=new Date(value);
+ if(Number.isNaN(d.getTime()))return "ไม่ทราบวันที่";
+ return d.toLocaleString("th-TH",{dateStyle:"medium",timeStyle:"short"});
 }
 
 function render(){
-  const scores={};
-  members.forEach(m=>scores[m.name]=0);
-  entries.forEach(entry=>{
-    recipients(entry).forEach(oldName=>{
-      const name=canonicalMemberName(oldName);
-      scores[name]=(scores[name]||0)+Number(entry.points??1);
-    });
+ const scores={};
+ members.forEach(m=>scores[m.name]=0);
+
+ entries.forEach(entry=>{
+  recipients(entry).forEach(oldName=>{
+   const name=canonicalName(oldName);
+   scores[name]=(scores[name]||0)+Number(entry.points??1);
   });
-  $("totalEntries").textContent=entries.length;
-  $("activeMembers").textContent=members.filter(m=>m.active!==false && (scores[m.name]||0)>0).length;
-  const query=$("rankSearch").value.trim().toLowerCase();
-  const list=members.map(m=>({...m,points:scores[m.name]||0}))
-    .filter(m=>m.name.toLowerCase().includes(query) || (m.aliases||[]).some(a=>String(a).toLowerCase().includes(query)))
-    .sort((a,b)=>b.points-a.points||a.name.localeCompare(b.name));
-  let last=null,rank=0;
-  $("leaderboard").innerHTML=list.map((m,i)=>{
-    if(last===null||m.points!==last)rank=i+1;last=m.points;
-    const badge=rank===1?"🥇":rank===2?"🥈":rank===3?"🥉":rank;
-    return `<div class="rankrow"><div class="medal">${badge}</div><div><div class="member-name">${escapeHtml(m.name)}${m.active===false?' <span class="member-role">(ปิดใช้งาน)</span>':''}</div><div class="member-role">${escapeHtml(m.role||"สมาชิก")}</div></div><div class="points">${m.points} คะแนน</div></div>`;
-  }).join("")||'<div class="empty">ไม่พบสมาชิก</div>';
-  const hq=$("historySearch").value.trim().toLowerCase();
-  const filtered=entries.filter(e=>[e.member,e.friends,e.note,e.image_url].join(" ").toLowerCase().includes(hq));
-  $("history").innerHTML=filtered.map(e=>{
-    const names=recipients(e);const proof=httpsUrl(e.image_url);
-    return `<article class="card"><strong>👥 ${names.map(escapeHtml).join(", ")}</strong><p>${escapeHtml(dateText(e.created_at))} • ${names.length} คน • คนละ 1 คะแนน</p>${e.note?`<p>${escapeHtml(e.note)}</p>`:""}${proof?`<div><a class="proof" href="${escapeHtml(proof)}" target="_blank" rel="noopener noreferrer">🔗 เปิดรูปหลักฐาน</a><br><a href="${escapeHtml(proof)}" target="_blank" rel="noopener noreferrer"><img src="${escapeHtml(proof)}" alt="รูปหลักฐาน" loading="lazy" style="display:block;max-width:100%;max-height:260px;margin-top:10px;border-radius:10px" onerror="this.style.display='none'"></a></div>`:""}</article>`;
-  }).join("")||'<div class="empty">ยังไม่มีประวัติหลักฐาน</div>';
+ });
+
+ $("totalEntries").textContent=entries.length;
+ $("activeMembers").textContent=members.filter(m=>
+  m.active!==false && (scores[m.name]||0)>0
+ ).length;
+
+ const q=$("rankSearch").value.trim().toLowerCase();
+
+ const list=members.map(m=>({...m,points:scores[m.name]||0}))
+  .filter(m=>
+   m.name.toLowerCase().includes(q) ||
+   (m.aliases||[]).some(a=>String(a).toLowerCase().includes(q))
+  )
+  .sort((a,b)=>b.points-a.points||a.name.localeCompare(b.name));
+
+ let last=null,rank=0;
+
+ $("leaderboard").innerHTML=list.map((m,i)=>{
+  if(last===null||m.points!==last)rank=i+1;
+  last=m.points;
+  const badge=rank===1?"🥇":rank===2?"🥈":rank===3?"🥉":rank;
+
+  return `<div class="rankrow">
+   <div class="medal">${badge}</div>
+   <div>
+    <div class="member-name">${escapeHtml(m.name)}${m.active===false?' <span class="member-role">(ปิดใช้งาน)</span>':''}</div>
+    <div class="member-role">${escapeHtml(m.role||"สมาชิก")}</div>
+   </div>
+   <div class="points">${m.points} คะแนน</div>
+  </div>`;
+ }).join("")||'<div class="empty">ไม่พบสมาชิก</div>';
+
+ const hq=$("historySearch").value.trim().toLowerCase();
+
+ const filtered=entries.filter(e=>
+  [e.member,e.friends,e.note,e.image_url].join(" ").toLowerCase().includes(hq)
+ );
+
+ $("history").innerHTML=filtered.map(e=>{
+  const names=recipients(e);
+  const proof=validHttps(e.image_url);
+
+  return `<article class="card">
+   <strong>👥 ${names.map(escapeHtml).join(", ")}</strong>
+   <p>${escapeHtml(dateText(e.created_at))} • ${names.length} คน • คนละ 1 คะแนน</p>
+   ${e.note?`<p>${escapeHtml(e.note)}</p>`:""}
+   ${proof?`
+    <a class="proof" href="${escapeHtml(proof)}" target="_blank" rel="noopener noreferrer">🔗 เปิดหลักฐาน</a>
+    <img src="${escapeHtml(proof)}" alt="หลักฐาน" loading="lazy"
+     style="display:block;max-width:100%;max-height:260px;margin-top:10px;border-radius:10px"
+     onerror="this.style.display='none'">
+   `:""}
+  </article>`;
+ }).join("")||'<div class="empty">ยังไม่มีประวัติหลักฐาน</div>';
+}
+
+async function loadMembers(){
+ if(!db)return;
+
+ const {data,error}=await db
+  .from("kind_of_loop_members")
+  .select("id,name,role,active,aliases,created_at")
+  .order("name",{ascending:true});
+
+ if(error)throw error;
+
+ members=(data||[]).map(m=>({
+  ...m,
+  active:m.active!==false,
+  aliases:Array.isArray(m.aliases)?m.aliases:[]
+ }));
+
+ buildMembers();
+ render();
+ if(isAdmin)renderAdminMembers();
+}
+
+async function loadEntries(){
+ if(!db||entriesLoading)return false;
+ entriesLoading=true;
+
+ try{
+  const pageSize=500;
+  const allRows=[];
+  let from=0;
+
+  while(true){
+   const {data,error}=await db
+    .from("kind_of_loop_entries")
+    .select("*")
+    .order("created_at",{ascending:false})
+    .order("id",{ascending:false})
+    .range(from,from+pageSize-1);
+
+   if(error)throw error;
+
+   const batch=data||[];
+   allRows.push(...batch);
+
+   if(batch.length<pageSize)break;
+   from+=pageSize;
+  }
+
+  entries=allRows;
+  render();
+  setStatus(`ออนไลน์ • โหลดประวัติ ${entries.length} รายการ`,"on");
+  return true;
+
+ }catch(error){
+  console.error("loadEntries:",error);
+  setStatus("โหลดข้อมูลไม่สำเร็จ: "+error.message,"off");
+  return false;
+ }finally{
+  entriesLoading=false;
+ }
+}
+
+function stopLiveUpdates(){
+ if(realtimeChannel&&db){
+  db.removeChannel(realtimeChannel).catch(console.error);
+ }
+ realtimeChannel=null;
+
+ if(pollTimer){
+  clearInterval(pollTimer);
+  pollTimer=null;
+ }
+}
+
+function startLiveUpdates(){
+ if(!db)return;
+ stopLiveUpdates();
+
+ realtimeChannel=db.channel("40fps-kind-of-loop-live")
+  .on("postgres_changes",{
+   event:"*",schema:"public",table:"kind_of_loop_entries"
+  },()=>loadEntries())
+  .subscribe(status=>{
+   if(status==="SUBSCRIBED"){
+    setStatus("ออนไลน์ • รับคะแนนอัตโนมัติแล้ว","on");
+   }else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"){
+    setStatus("Realtime ขัดข้อง • ใช้ระบบโหลดสำรอง","off");
+   }
+  });
+
+ pollTimer=setInterval(()=>{
+  if(db&&document.visibilityState==="visible")loadEntries();
+ },30000);
+}
+
+async function restoreAdminSession(){
+ if(!db)return;
+ try{await verifyAdminSession();}
+ catch(error){adminMessage(error.message,true);}
+}
+
+async function connect(url,key,save=true){
+ $("connectBtn").disabled=true;
+
+ try{
+  if(!window.supabase)throw new Error("โหลด Supabase ไม่สำเร็จ");
+
+  const parsed=new URL(url.trim());
+  if(parsed.protocol!=="https:")throw new Error("Project URL ต้องเป็น HTTPS");
+
+  if(!key.trim())throw new Error("กรุณากรอก Publishable หรือ anon key");
+
+  setStatus("กำลังเชื่อมต่อฐานข้อมูล...");
+
+  const client=window.supabase.createClient(parsed.origin,key.trim());
+
+  const {error}=await client
+   .from("kind_of_loop_entries")
+   .select("id")
+   .limit(1);
+
+  if(error)throw error;
+
+  stopLiveUpdates();
+  db=client;
+
+  if(save){
+   localStorage.setItem(CONFIG_KEY,JSON.stringify({
+    url:parsed.origin,key:key.trim()
+   }));
+  }
+
+  $("settingsBox").classList.remove("show");
+
+  await loadEntries();
+
+  try{
+   await loadMembers();
+  }catch(error){
+   console.error("loadMembers:",error);
+   setStatus("เชื่อมต่อได้ แต่โหลดรายชื่อสมาชิกไม่สำเร็จ","off");
+   adminMessage("อ่าน kind_of_loop_members ไม่สำเร็จ: "+error.message,true);
+  }
+
+  await restoreAdminSession();
+  startLiveUpdates();
+
+ }catch(error){
+  console.error("connect:",error);
+  db=null;
+  setStatus("เชื่อมต่อไม่สำเร็จ: "+error.message,"off");
+  alert("เชื่อมต่อ Supabase ไม่สำเร็จ\n"+error.message);
+ }finally{
+  $("connectBtn").disabled=false;
+ }
+}
+
+async function uploadProof(file){
+ const ext={
+  "image/png":"png",
+  "image/jpeg":"jpg",
+  "image/webp":"webp",
+  "image/gif":"gif"
+ }[file.type];
+
+ if(!ext)throw new Error("ชนิดไฟล์ไม่รองรับ");
+
+ const path=`${Date.now()}-${crypto.randomUUID()}.${ext}`;
+
+ const {data,error}=await db.storage
+  .from("kind-of-loop-proofs")
+  .upload(path,file,{
+   cacheControl:"3600",
+   upsert:false,
+   contentType:file.type
+  });
+
+ if(error)throw error;
+
+ return db.storage
+  .from("kind-of-loop-proofs")
+  .getPublicUrl(data.path).data.publicUrl;
+}
+
+function setProofFile(file){
+ if(!file)return;
+
+ const allowed=["image/png","image/jpeg","image/webp","image/gif"];
+
+ if(!allowed.includes(file.type)){
+  alert("รองรับ PNG, JPG, WEBP และ GIF");
+  return;
+ }
+
+ if(file.size>5*1024*1024){
+  alert("รูปมีขนาดเกิน 5 MB");
+  return;
+ }
+
+ proofFile=file;
+ $("proofUrl").value="";
+
+ if(previewUrl)URL.revokeObjectURL(previewUrl);
+ previewUrl=URL.createObjectURL(file);
+
+ $("proofPreview").replaceChildren();
+
+ const img=document.createElement("img");
+ img.src=previewUrl;
+ img.alt="ตัวอย่างหลักฐาน";
+ img.style.cssText="display:block;max-width:100%;max-height:300px;border-radius:12px";
+
+ const p=document.createElement("p");
+ p.className="hint";
+ p.textContent=`เลือกรูปแล้ว: ${file.name} (${(file.size/1024).toFixed(0)} KB)`;
+
+ $("proofPreview").append(img,p);
+}
+
+function clearProof(){
+ proofFile=null;
+ $("proofFile").value="";
+ $("proofPreview").replaceChildren();
+
+ if(previewUrl)URL.revokeObjectURL(previewUrl);
+ previewUrl=null;
 }
 
 function showAdminDashboard(user){
-  adminUser=user;isAdmin=true;
-  $("adminLogin").hidden=true;$("adminDashboard").hidden=false;
-  $("adminWelcome").textContent="เข้าสู่ระบบแล้ว: "+(user.email||"แอดมิน");
-  setAdminMessage("ตรวจสอบสิทธิ์แอดมินสำเร็จ");
-  renderAdminMembers();
-}
-function hideAdminDashboard(){
-  adminUser=null;isAdmin=false;
-  $("adminLogin").hidden=false;$("adminDashboard").hidden=true;
-}
-async function verifyAdminSession(){
-  if(!db)throw new Error("กรุณาเชื่อมต่อ Supabase ก่อน");
-  const {data:{session},error:sessionError}=await db.auth.getSession();
-  if(sessionError)throw sessionError;
-  if(!session){hideAdminDashboard();return false;}
-  const {data,error}=await db.from("kind_of_loop_admins").select("user_id").eq("user_id",session.user.id).maybeSingle();
-  if(error)throw error;
-  if(!data){await db.auth.signOut();hideAdminDashboard();throw new Error("บัญชีนี้ยังไม่ได้รับสิทธิ์แอดมิน กรุณาตรวจ User UID ใน kind_of_loop_admins");}
-  showAdminDashboard(session.user);
-  return true;
-}
-async function restoreAdminSession(){
-  if(!db)return;
-  try{await verifyAdminSession();}catch(error){setAdminMessage(error.message,true);}
-}
-async function loginAdmin(){
-  if(!db){setAdminMessage("กรุณาเชื่อมต่อ Supabase ก่อน",true);$("settingsBox").classList.add("show");return;}
-  const email=$("adminEmail").value.trim(),password=$("adminPassword").value;
-  if(!email||!password){setAdminMessage("กรุณากรอกอีเมลและรหัสผ่าน",true);return;}
-  $("adminLoginBtn").disabled=true;
-  try{
-    const {error}=await db.auth.signInWithPassword({email,password});
-    if(error)throw error;
-    await verifyAdminSession();
-    $("adminPassword").value="";
-    await loadMembers();
-  }catch(error){setAdminMessage(error.message,true);}
-  finally{$("adminLoginBtn").disabled=false;}
-}
-function resetMemberForm(){
-  $("memberForm").reset();$("editMemberId").value="";$("memberFormTitle").textContent="เพิ่มสมาชิก";
-  $("saveMemberBtn").textContent="บันทึกสมาชิก";$("cancelEditBtn").hidden=true;
-}
-function renderAdminMembers(){
-  if(!isAdmin)return;
-  $("adminMembers").innerHTML=members.map(m=>{
-    const inactive=m.active===false;
-    return `<div class="admin-row ${inactive?"inactive":""}">
-      <div><div class="name">${escapeHtml(m.name)}</div><div class="meta">${escapeHtml(m.role||"สมาชิก")} • ${inactive?"ปิดใช้งาน":"ใช้งานอยู่"}${(m.aliases||[]).length?" • ชื่อเดิม: "+escapeHtml(m.aliases.join(", ")):""}</div></div>
-      <div class="actions">
-        <button type="button" class="secondary" data-edit-member="${escapeHtml(m.id)}">แก้ไข</button>
-        <button type="button" class="${inactive?"secondary":"danger"}" data-toggle-member="${escapeHtml(m.id)}">${inactive?"เปิดใช้งาน":"ปิดใช้งาน"}</button>
-      </div>
-    </div>`;
-  }).join("")||'<div class="empty">ยังไม่มีรายชื่อสมาชิก</div>';
-}
-async function saveMember(event){
-  event.preventDefault();
-  if(!isAdmin||!db){setAdminMessage("กรุณาเข้าสู่ระบบแอดมินก่อน",true);return;}
-  const id=$("editMemberId").value;
-  const name=$("memberName").value.trim();
-  const role=$("memberRole").value;
-  if(!name){setAdminMessage("กรุณากรอกชื่อสมาชิก",true);return;}
-  $("saveMemberBtn").disabled=true;
-  try{
-    if(id){
-      const old=members.find(m=>String(m.id)===String(id));
-      if(!old)throw new Error("ไม่พบสมาชิกที่ต้องการแก้ไข");
-      const aliases=[...(old.aliases||[])];
-      if(old.name.trim().toLocaleLowerCase()!==name.toLocaleLowerCase()&&!aliases.some(a=>a.toLocaleLowerCase()===old.name.toLocaleLowerCase()))aliases.push(old.name);
-      const {error}=await db.from("kind_of_loop_members").update({name,role,aliases}).eq("id",id);
-      if(error)throw error;
-      setAdminMessage("แก้ไขสมาชิกสำเร็จ และเก็บชื่อเดิมไว้สำหรับรวมคะแนน");
-    }else{
-      const {error}=await db.from("kind_of_loop_members").insert({name,role,active:true,aliases:[]});
-      if(error)throw error;
-      setAdminMessage("เพิ่มสมาชิกสำเร็จ");
-    }
-    resetMemberForm();await loadMembers();
-  }catch(error){setAdminMessage("บันทึกไม่สำเร็จ: "+error.message,true);}
-  finally{$("saveMemberBtn").disabled=false;}
-}
-async function toggleMember(id){
-  if(!isAdmin||!db)return;
-  const member=members.find(m=>String(m.id)===String(id));if(!member)return;
-  const action=member.active===false?"เปิดใช้งาน":"ปิดใช้งาน";
-  if(!confirm(`ยืนยัน${action}สมาชิก ${member.name} ?\nระบบจะไม่ลบประวัติหรือคะแนนเดิม`))return;
-  try{
-    const {error}=await db.from("kind_of_loop_members").update({active:member.active===false}).eq("id",id);
-    if(error)throw error;
-    setAdminMessage(`${action}สมาชิกสำเร็จ โดยไม่ลบประวัติเดิม`);
-    await loadMembers();
-  }catch(error){setAdminMessage("ดำเนินการไม่สำเร็จ: "+error.message,true);}
+ adminUser=user;
+ isAdmin=true;
+ $("adminLogin").hidden=true;
+ $("adminDashboard").hidden=false;
+ $("adminWelcome").textContent="เข้าสู่ระบบแล้ว: "+(user.email||"แอดมิน");
+ adminMessage("ตรวจสอบสิทธิ์แอดมินสำเร็จ");
+ renderAdminMembers();
 }
 
-$("settingsToggle").addEventListener("click",()=>$("settingsBox").classList.toggle("show"));
-$("adminToggle").addEventListener("click",()=>$("adminBox").classList.toggle("show"));
-$("connectBtn").addEventListener("click",()=>connect($("projectUrl").value,$("publicKey").value));
-$("clearConfigBtn").addEventListener("click",()=>{
-  localStorage.removeItem("40fps-kind-loop-config");\n  stopLiveUpdates();
-  if(db)db.auth.signOut().catch(()=>{});
-  db=null;entries=[];members=FALLBACK_MEMBERS.map(m=>({...m,active:true,aliases:[],id:null}));
-  $("projectUrl").value="";$("publicKey").value="";$("settingsBox").classList.add("show");
-  hideAdminDashboard();buildMembers();setStatus("ล้างการตั้งค่าแล้ว","off");render();
+function hideAdminDashboard(){
+ adminUser=null;
+ isAdmin=false;
+ $("adminLogin").hidden=false;
+ $("adminDashboard").hidden=true;
+}
+
+async function verifyAdminSession(){
+ if(!db)throw new Error("กรุณาเชื่อมต่อ Supabase ก่อน");
+
+ const {data:{session},error:sessionError}=await db.auth.getSession();
+ if(sessionError)throw sessionError;
+
+ if(!session){
+  hideAdminDashboard();
+  return false;
+ }
+
+ const {data,error}=await db
+  .from("kind_of_loop_admins")
+  .select("user_id")
+  .eq("user_id",session.user.id)
+  .maybeSingle();
+
+ if(error)throw error;
+
+ if(!data){
+  await db.auth.signOut();
+  hideAdminDashboard();
+  throw new Error("บัญชีนี้ยังไม่ได้รับสิทธิ์แอดมิน");
+ }
+
+ showAdminDashboard(session.user);
+ return true;
+}
+
+async function loginAdmin(){
+ if(!db){
+  adminMessage("กรุณาเชื่อมต่อ Supabase ก่อน",true);
+  $("settingsBox").classList.add("show");
+  return;
+ }
+
+ const email=$("adminEmail").value.trim();
+ const password=$("adminPassword").value;
+
+ if(!email||!password){
+  adminMessage("กรุณากรอกอีเมลและรหัสผ่าน",true);
+  return;
+ }
+
+ $("adminLoginBtn").disabled=true;
+
+ try{
+  const {error}=await db.auth.signInWithPassword({email,password});
+  if(error)throw error;
+
+  await verifyAdminSession();
+  $("adminPassword").value="";
+  await loadMembers();
+
+ }catch(error){
+  adminMessage(error.message,true);
+ }finally{
+  $("adminLoginBtn").disabled=false;
+ }
+}
+
+function resetMemberForm(){
+ $("memberForm").reset();
+ $("editMemberId").value="";
+ $("memberFormTitle").textContent="เพิ่มสมาชิก";
+ $("saveMemberBtn").textContent="บันทึกสมาชิก";
+ $("cancelEditBtn").hidden=true;
+}
+
+function renderAdminMembers(){
+ if(!isAdmin)return;
+
+ $("adminMembers").innerHTML=members.map(m=>{
+  const inactive=m.active===false;
+
+  return `<div class="admin-row ${inactive?"inactive":""}">
+   <div>
+    <div class="member-name">${escapeHtml(m.name)}</div>
+    <div class="member-role">
+     ${escapeHtml(m.role||"สมาชิก")} • ${inactive?"ปิดใช้งาน":"ใช้งานอยู่"}
+     ${(m.aliases||[]).length?" • ชื่อเดิม: "+escapeHtml(m.aliases.join(", ")):""}
+    </div>
+   </div>
+   <div class="actions">
+    <button class="secondary" type="button" data-edit-member="${escapeHtml(m.id)}">แก้ไข</button>
+    <button class="${inactive?"secondary":"danger"}" type="button"
+     data-toggle-member="${escapeHtml(m.id)}">
+     ${inactive?"เปิดใช้งาน":"ปิดใช้งาน"}
+    </button>
+   </div>
+  </div>`;
+ }).join("")||'<div class="empty">ยังไม่มีรายชื่อสมาชิก</div>';
+}
+
+async function saveMember(event){
+ event.preventDefault();
+
+ if(!isAdmin||!db){
+  adminMessage("กรุณาเข้าสู่ระบบแอดมินก่อน",true);
+  return;
+ }
+
+ const id=$("editMemberId").value;
+ const name=$("memberName").value.trim();
+ const role=$("memberRole").value;
+
+ if(!name){
+  adminMessage("กรุณากรอกชื่อสมาชิก",true);
+  return;
+ }
+
+ $("saveMemberBtn").disabled=true;
+
+ try{
+  if(id){
+   const old=members.find(m=>String(m.id)===String(id));
+   if(!old)throw new Error("ไม่พบสมาชิก");
+
+   const aliases=[...(old.aliases||[])];
+
+   if(old.name.trim().toLowerCase()!==name.toLowerCase()&&
+      !aliases.some(a=>String(a).toLowerCase()===old.name.toLowerCase())){
+    aliases.push(old.name);
+   }
+
+   const {error}=await db.from("kind_of_loop_members")
+    .update({name,role,aliases}).eq("id",id);
+
+   if(error)throw error;
+   adminMessage("แก้ไขสมาชิกสำเร็จ และเก็บชื่อเดิมแล้ว");
+
+  }else{
+   const {error}=await db.from("kind_of_loop_members")
+    .insert({name,role,active:true,aliases:[]});
+
+   if(error)throw error;
+   adminMessage("เพิ่มสมาชิกสำเร็จ");
+  }
+
+  resetMemberForm();
+  await loadMembers();
+
+ }catch(error){
+  adminMessage("บันทึกไม่สำเร็จ: "+error.message,true);
+ }finally{
+  $("saveMemberBtn").disabled=false;
+ }
+}
+
+async function toggleMember(id){
+ if(!isAdmin||!db)return;
+
+ const member=members.find(m=>String(m.id)===String(id));
+ if(!member)return;
+
+ const enable=member.active===false;
+ const action=enable?"เปิดใช้งาน":"ปิดใช้งาน";
+
+ if(!confirm(`ยืนยัน${action}สมาชิก ${member.name}?\nคะแนนและประวัติเดิมจะไม่ถูกลบ`))return;
+
+ try{
+  const {error}=await db.from("kind_of_loop_members")
+   .update({active:enable}).eq("id",id);
+
+  if(error)throw error;
+
+  adminMessage(`${action}สมาชิกสำเร็จ`);
+  await loadMembers();
+
+ }catch(error){
+  adminMessage(error.message,true);
+ }
+}
+
+/* ปุ่มตั้งค่าและเชื่อมต่อ */
+$("settingsToggle").addEventListener("click",()=>{
+ $("settingsBox").classList.toggle("show");
 });
-$("refreshBtn").addEventListener("click",async()=>{await loadEntries();try{await loadMembers();}catch(e){setAdminMessage(e.message,true);}});
+
+$("adminToggle").addEventListener("click",()=>{
+ $("adminBox").classList.toggle("show");
+});
+
+$("connectBtn").addEventListener("click",()=>{
+ connect($("projectUrl").value,$("publicKey").value);
+});
+
+$("clearConfigBtn").addEventListener("click",async()=>{
+ if(!confirm("ล้างเฉพาะการตั้งค่าที่บันทึกในเบราว์เซอร์นี้ใช่หรือไม่? ข้อมูลออนไลน์จะไม่ถูกลบ"))return;
+
+ localStorage.removeItem(CONFIG_KEY);
+ stopLiveUpdates();
+
+ if(db){
+  try{await db.auth.signOut();}catch(e){console.warn(e);}
+ }
+
+ db=null;
+ entries=[];
+ members=FALLBACK_MEMBERS.map(m=>({...m,id:null,active:true,aliases:[]}));
+
+ $("projectUrl").value=DEFAULT_URL;
+ $("publicKey").value="";
+ $("settingsBox").classList.add("show");
+
+ hideAdminDashboard();
+ buildMembers();
+ render();
+ setStatus("ล้างการตั้งค่าในเครื่องแล้ว","off");
+});
+
+$("refreshBtn").addEventListener("click",async()=>{
+ if(!db){
+  alert("กรุณาเชื่อมต่อ Supabase ก่อน");
+  $("settingsBox").classList.add("show");
+  return;
+ }
+
+ await loadEntries();
+
+ try{await loadMembers();}
+ catch(error){adminMessage(error.message,true);}
+});
+
+/* ระบบแอดมิน */
 $("adminLoginBtn").addEventListener("click",loginAdmin);
-$("adminPassword").addEventListener("keydown",e=>{if(e.key==="Enter")loginAdmin();});
-$("adminLogoutBtn").addEventListener("click",async()=>{
-  if(db)await db.auth.signOut();
-  hideAdminDashboard();resetMemberForm();setAdminMessage("ออกจากระบบแอดมินแล้ว");
+$("adminPassword").addEventListener("keydown",e=>{
+ if(e.key==="Enter")loginAdmin();
 });
-$("adminRefreshBtn").addEventListener("click",async()=>{try{await loadMembers();setAdminMessage("โหลดรายชื่อสมาชิกแล้ว");}catch(e){setAdminMessage(e.message,true);}});
+
+$("adminLogoutBtn").addEventListener("click",async()=>{
+ if(db)await db.auth.signOut();
+ hideAdminDashboard();
+ resetMemberForm();
+ adminMessage("ออกจากระบบแอดมินแล้ว");
+});
+
+$("adminRefreshBtn").addEventListener("click",async()=>{
+ try{
+  await loadMembers();
+  adminMessage("โหลดรายชื่อสมาชิกแล้ว");
+ }catch(error){adminMessage(error.message,true);}
+});
+
 $("memberForm").addEventListener("submit",saveMember);
 $("cancelEditBtn").addEventListener("click",resetMemberForm);
+
 $("adminMembers").addEventListener("click",async event=>{
-  const edit=event.target.closest("[data-edit-member]");
-  const toggle=event.target.closest("[data-toggle-member]");
-  if(edit){
-    const m=members.find(x=>String(x.id)===String(edit.dataset.editMember));if(!m)return;
-    $("editMemberId").value=m.id;$("memberName").value=m.name;$("memberRole").value=m.role||"สมาชิก";
-    $("memberFormTitle").textContent="แก้ไขสมาชิก";$("saveMemberBtn").textContent="บันทึกการแก้ไข";$("cancelEditBtn").hidden=false;
-    $("memberName").focus();
-  }else if(toggle){await toggleMember(toggle.dataset.toggleMember);}
+ const edit=event.target.closest("[data-edit-member]");
+ const toggle=event.target.closest("[data-toggle-member]");
+
+ if(edit){
+  const m=members.find(x=>String(x.id)===String(edit.dataset.editMember));
+  if(!m)return;
+
+  $("editMemberId").value=m.id;
+  $("memberName").value=m.name;
+  $("memberRole").value=m.role||"สมาชิก";
+  $("memberFormTitle").textContent="แก้ไขสมาชิก";
+  $("saveMemberBtn").textContent="บันทึกการแก้ไข";
+  $("cancelEditBtn").hidden=false;
+  $("memberName").focus();
+
+ }else if(toggle){
+  await toggleMember(toggle.dataset.toggleMember);
+ }
 });
 
-$("pasteZone").addEventListener("click",()=>$("pasteZone").focus());
-$("proofFile").addEventListener("change",event=>setProofFile(event.target.files?.[0]));
+/* รูปหลักฐาน */
+$("pasteZone").addEventListener("click",()=>{
+ $("pasteZone").focus();
+});
+
+$("proofFile").addEventListener("change",event=>{
+ setProofFile(event.target.files?.[0]);
+});
+
 document.addEventListener("paste",event=>{
-  const items=[...(event.clipboardData?.items||[])];
-  const imageItem=items.find(item=>item.type.startsWith("image/"));
-  if(!imageItem)return;
-  const file=imageItem.getAsFile();
-  if(file){event.preventDefault();setProofFile(file);}
-});
-$("testLinkBtn").addEventListener("click",()=>{
-  const url=httpsUrl($("proofUrl").value);if(!url){alert("กรุณาวางลิงก์ HTTPS ที่ถูกต้อง");return;}
-  window.open(url,"_blank","noopener,noreferrer");
-});
-$("entryForm").addEventListener("reset",()=>setTimeout(()=>{clearProofSelection();updateSelected();},0));
-$("entryForm").addEventListener("submit",async event=>{
+ const items=[...(event.clipboardData?.items||[])];
+ const imageItem=items.find(item=>item.type.startsWith("image/"));
+ if(!imageItem)return;
+
+ const file=imageItem.getAsFile();
+ if(file){
   event.preventDefault();
-  if(!db){alert("กรุณาตั้งค่า Supabase และเชื่อมต่อก่อน");$("settingsBox").classList.add("show");return;}
-  const names=selectedNames();if(!names.length){alert("กรุณาเลือกสมาชิกที่ร่วมเล่น");return;}
-  let proof=httpsUrl($("proofUrl").value);
-  if(!pastedProofFile&&!proof){alert("กรุณาวางรูป เลือกไฟล์รูป หรือวางลิงก์ HTTPS");return;}
-  const button=$("submitBtn");button.disabled=true;
-  try{
-    if(pastedProofFile){button.textContent="กำลังอัปโหลดรูป...";proof=await uploadProofImage(pastedProofFile);}
-    button.textContent="กำลังบันทึกคะแนน...";
-    const submittedEntry={
-      member:names[0],
-      points:1,
-      players:names.length,
-      friends:names.slice(1).join(", "),
-      note:$("note").value.trim(),
-      image_url:proof
-    };
-    const {error}=await db.from("kind_of_loop_entries").insert(submittedEntry);
-    if(error)throw error;
-
-    // แสดงคะแนนทันทีหลัง INSERT สำเร็จ
-    const optimisticEntry={...submittedEntry,created_at:new Date().toISOString()};
-    entries.unshift(optimisticEntry);
-    render();
-
-    $("entryForm").reset();clearProofSelection();updateSelected();
-    const refreshed=await loadEntries();
-    const found=entries.some(e=>
-      e.member===submittedEntry.member &&
-      e.image_url===submittedEntry.image_url &&
-      e.friends===submittedEntry.friends
-    );
-    if(!refreshed || !found){
-      if(!found)entries.unshift(optimisticEntry);
-      render();
-      setStatus("บันทึกแล้ว แต่ยังอ่านรายการกลับไม่ได้ • ตรวจ SELECT Policy","off");
-      alert("บันทึกลงฐานข้อมูลแล้ว แต่หน้าเว็บอ่านคะแนนกลับมาไม่ได้ กรุณารันไฟล์ SQL 40FPS-supabase-read-policy.sql ใน Supabase SQL Editor");
-    }else{
-      alert("บันทึกหลักฐานและคะแนนสำเร็จ!");
-    }
-  }catch(error){alert("บันทึกไม่สำเร็จ: "+error.message);}
-  finally{button.disabled=false;button.textContent="บันทึกหลักฐานและคะแนน";}
+  setProofFile(file);
+ }
 });
-document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible" && db)loadEntries();});\n$("rankSearch").addEventListener("input",render);
+
+$("testLinkBtn").addEventListener("click",()=>{
+ const url=validHttps($("proofUrl").value);
+
+ if(!url){
+  alert("กรุณาวางลิงก์ HTTPS ที่ถูกต้อง");
+  return;
+ }
+
+ window.open(url,"_blank","noopener,noreferrer");
+});
+
+$("entryForm").addEventListener("reset",()=>{
+ setTimeout(()=>{
+  clearProof();
+  updateSelected();
+ },0);
+});
+
+/* บันทึกหลักฐานและคะแนน */
+$("entryForm").addEventListener("submit",async event=>{
+ event.preventDefault();
+
+ if(!db){
+  alert("กรุณาเชื่อมต่อ Supabase ก่อน");
+  $("settingsBox").classList.add("show");
+  return;
+ }
+
+ const names=selectedNames();
+
+ if(!names.length){
+  alert("กรุณาเลือกสมาชิกที่ร่วมเล่น");
+  return;
+ }
+
+ let proof=validHttps($("proofUrl").value);
+
+ if(!proofFile&&!proof){
+  alert("กรุณาเลือกรูปหรือวางลิงก์ HTTPS");
+  return;
+ }
+
+ const button=$("submitBtn");
+ button.disabled=true;
+
+ try{
+  if(proofFile){
+   button.textContent="กำลังอัปโหลดรูป...";
+   proof=await uploadProof(proofFile);
+  }
+
+  button.textContent="กำลังบันทึกคะแนน...";
+
+  const submittedEntry={
+   member:names[0],
+   points:1,
+   players:names.length,
+   friends:names.slice(1).join(", "),
+   note:$("note").value.trim(),
+   image_url:proof
+  };
+
+  const {data,error}=await db
+   .from("kind_of_loop_entries")
+   .insert(submittedEntry)
+   .select("*")
+   .single();
+
+  if(error)throw error;
+
+  if(data){
+   entries.unshift(data);
+   render();
+  }
+
+  $("entryForm").reset();
+  clearProof();
+  updateSelected();
+
+  await loadEntries();
+
+  alert("บันทึกหลักฐานและคะแนนสำเร็จ!");
+
+ }catch(error){
+  console.error("submit:",error);
+  alert("บันทึกไม่สำเร็จ: "+error.message);
+ }finally{
+  button.disabled=false;
+  button.textContent="บันทึกหลักฐานและคะแนน";
+ }
+});
+
+/* ค้นหาและอัปเดต */
+$("rankSearch").addEventListener("input",render);
 $("historySearch").addEventListener("input",render);
 
-buildMembers();render();
-const saved=getConfig();
-if(saved){
-  $("projectUrl").value=saved.url||"";$("publicKey").value=saved.key||"";connect(saved.url,saved.key,false);
+document.addEventListener("visibilitychange",()=>{
+ if(document.visibilityState==="visible"&&db){
+  loadEntries();
+ }
+});
+
+buildMembers();
+render();
+
+/* เริ่มต้นด้วยการตั้งค่าเดิมที่บันทึกไว้ */
+$("projectUrl").value=DEFAULT_URL;
+
+const saved=getSavedConfig();
+
+if(saved&&saved.url&&saved.key){
+ $("projectUrl").value=saved.url;
+ $("publicKey").value=saved.key;
+ connect(saved.url,saved.key,false);
 }else{
-  $("settingsBox").classList.add("show");setStatus("กรุณาตั้งค่า Supabase เพื่อเริ่มใช้งาน","off");
-  setAdminMessage("กรุณาเชื่อมต่อ Supabase ก่อนเข้าสู่ระบบแอดมิน");
+ $("settingsBox").classList.add("show");
+ setStatus("กรุณาเชื่อมต่อ Supabase","off");
+ adminMessage("กรุณาเชื่อมต่อ Supabase ก่อนเข้าสู่ระบบแอดมิน");
 }
 </script>
 </body>
