@@ -189,7 +189,7 @@ let members = FALLBACK_MEMBERS.map(m=>({...m,active:true,aliases:[],id:null}));
 let adminUser = null;
 let isAdmin = false;
 let pastedProofFile = null;
-let proofPreviewUrl = null;
+let proofPreviewUrl = null;\nlet entriesLoading = false;
 
 function setProofFile(file){
   if(!file)return;
@@ -259,6 +259,34 @@ async function loadMembers(){
   if(isAdmin)renderAdminMembers();
 }
 
+
+let entriesChannel = null;
+let entriesPollTimer = null;
+
+function stopLiveUpdates(){
+  if(entriesChannel && db) db.removeChannel(entriesChannel).catch(()=>{});
+  entriesChannel=null;
+  if(entriesPollTimer){clearInterval(entriesPollTimer);entriesPollTimer=null;}
+}
+
+function startLiveUpdates(){
+  if(!db)return;
+  stopLiveUpdates();
+  entriesChannel=db.channel("40fps-kind-of-loop-live")
+    .on("postgres_changes",
+      {event:"*",schema:"public",table:"kind_of_loop_entries"},
+      ()=>loadEntries()
+    )
+    .subscribe((status)=>{
+      if(status==="SUBSCRIBED")setStatus("ออนไลน์ • รับคะแนนอัตโนมัติแล้ว","on");
+      else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT")
+        setStatus("Realtime ขัดข้อง • ใช้ระบบโหลดสำรอง","off");
+    });
+  entriesPollTimer=setInterval(()=>{
+    if(db && document.visibilityState==="visible")loadEntries();
+  },30000);
+}
+
 async function connect(url,key,save=true){
   try{
     if(!window.supabase)throw new Error("โหลด Supabase ไม่สำเร็จ");
@@ -278,20 +306,31 @@ async function connect(url,key,save=true){
       console.error(memberError);
       setAdminMessage("โหลดตาราง kind_of_loop_members ไม่สำเร็จ: "+memberError.message,true);
     }
-    await restoreAdminSession();
+    await restoreAdminSession();\n    startLiveUpdates();
   }catch(error){
     db=null;setStatus("เชื่อมต่อไม่สำเร็จ: "+error.message,"off");
   }finally{$("connectBtn").disabled=false;}
 }
 
 async function loadEntries(){
-  if(!db){render();return;}
-  setStatus("กำลังโหลดข้อมูล...","");
+  if(!db){render();return false;}
+  if(entriesLoading)return false;
+  entriesLoading=true;
   try{
-    const {data,error}=await db.from("kind_of_loop_entries").select("*").order("created_at",{ascending:false}).limit(1000);
+    const {data,error}=await db.from("kind_of_loop_entries")
+      .select("*").order("created_at",{ascending:false}).limit(1000);
     if(error)throw error;
-    entries=data||[];render();setStatus("ออนไลน์ • โหลดข้อมูลแล้ว","on");
-  }catch(error){setStatus("โหลดข้อมูลไม่สำเร็จ: "+error.message,"off");}
+    entries=data||[];
+    render();
+    setStatus("ออนไลน์ • โหลดคะแนนล่าสุดแล้ว","on");
+    return true;
+  }catch(error){
+    setStatus("บันทึกได้แต่โหลดคะแนนไม่ได้: "+error.message,"off");
+    console.error("Supabase loadEntries:",error);
+    return false;
+  }finally{
+    entriesLoading=false;
+  }
 }
 
 function recipients(entry){
@@ -439,7 +478,7 @@ $("settingsToggle").addEventListener("click",()=>$("settingsBox").classList.togg
 $("adminToggle").addEventListener("click",()=>$("adminBox").classList.toggle("show"));
 $("connectBtn").addEventListener("click",()=>connect($("projectUrl").value,$("publicKey").value));
 $("clearConfigBtn").addEventListener("click",()=>{
-  localStorage.removeItem("40fps-kind-loop-config");
+  localStorage.removeItem("40fps-kind-loop-config");\n  stopLiveUpdates();
   if(db)db.auth.signOut().catch(()=>{});
   db=null;entries=[];members=FALLBACK_MEMBERS.map(m=>({...m,active:true,aliases:[],id:null}));
   $("projectUrl").value="";$("publicKey").value="";$("settingsBox").classList.add("show");
@@ -490,16 +529,41 @@ $("entryForm").addEventListener("submit",async event=>{
   try{
     if(pastedProofFile){button.textContent="กำลังอัปโหลดรูป...";proof=await uploadProofImage(pastedProofFile);}
     button.textContent="กำลังบันทึกคะแนน...";
-    const {error}=await db.from("kind_of_loop_entries").insert({
-      member:names[0],points:1,players:names.length,friends:names.slice(1).join(", "),
-      note:$("note").value.trim(),image_url:proof
-    });
+    const submittedEntry={
+      member:names[0],
+      points:1,
+      players:names.length,
+      friends:names.slice(1).join(", "),
+      note:$("note").value.trim(),
+      image_url:proof
+    };
+    const {error}=await db.from("kind_of_loop_entries").insert(submittedEntry);
     if(error)throw error;
-    $("entryForm").reset();clearProofSelection();updateSelected();await loadEntries();alert("บันทึกหลักฐานและคะแนนสำเร็จ!");
+
+    // แสดงคะแนนทันทีหลัง INSERT สำเร็จ
+    const optimisticEntry={...submittedEntry,created_at:new Date().toISOString()};
+    entries.unshift(optimisticEntry);
+    render();
+
+    $("entryForm").reset();clearProofSelection();updateSelected();
+    const refreshed=await loadEntries();
+    const found=entries.some(e=>
+      e.member===submittedEntry.member &&
+      e.image_url===submittedEntry.image_url &&
+      e.friends===submittedEntry.friends
+    );
+    if(!refreshed || !found){
+      if(!found)entries.unshift(optimisticEntry);
+      render();
+      setStatus("บันทึกแล้ว แต่ยังอ่านรายการกลับไม่ได้ • ตรวจ SELECT Policy","off");
+      alert("บันทึกลงฐานข้อมูลแล้ว แต่หน้าเว็บอ่านคะแนนกลับมาไม่ได้ กรุณารันไฟล์ SQL 40FPS-supabase-read-policy.sql ใน Supabase SQL Editor");
+    }else{
+      alert("บันทึกหลักฐานและคะแนนสำเร็จ!");
+    }
   }catch(error){alert("บันทึกไม่สำเร็จ: "+error.message);}
   finally{button.disabled=false;button.textContent="บันทึกหลักฐานและคะแนน";}
 });
-$("rankSearch").addEventListener("input",render);
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible" && db)loadEntries();});\n$("rankSearch").addEventListener("input",render);
 $("historySearch").addEventListener("input",render);
 
 buildMembers();render();
