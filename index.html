@@ -189,7 +189,8 @@ let members = FALLBACK_MEMBERS.map(m=>({...m,active:true,aliases:[],id:null}));
 let adminUser = null;
 let isAdmin = false;
 let pastedProofFile = null;
-let proofPreviewUrl = null;\nlet entriesLoading = false;
+let proofPreviewUrl = null;
+let entriesLoading = false;
 
 function setProofFile(file){
   if(!file)return;
